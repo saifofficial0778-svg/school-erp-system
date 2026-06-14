@@ -134,8 +134,7 @@ school-erp-system
 
 ### Database
 
-* MongoDB (Planned)
-* Mongoose (Planned)
+* MySql
 
 ### Development Tools
 
