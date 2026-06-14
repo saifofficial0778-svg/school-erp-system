@@ -1,0 +1,57 @@
+import { Link, useLocation } from 'react-router-dom';
+
+// 1. Ensure closeSidebar prop is received here
+const Sidebar = ({ closeSidebar }) => {
+  const location = useLocation();
+
+  const menuItems = [
+    { name: 'Dashboard', path: '/dashboard' },
+    { name: 'Students', path: '/students' },
+    { name: 'Fee Management', path: '/fees' },
+    {name: 'Fee Collection',path:'/fee-collection'},
+    {name:"Pending Fee",path:'/pending-fees'},
+    {name:"Attendance",path:'/attendance'},
+    {name:"Attendance Report",path:"/attendance-report"},
+    { name: 'Settings', path: '/settings' }
+    
+  ];
+
+  return (
+    <div className="w-64 bg-slate-800 text-white flex flex-col h-full shadow-xl">
+      {/* Heading Group */}
+      <div className="p-5 text-xl font-bold border-b border-slate-700 tracking-wider flex justify-between items-center">
+        <span>🏫 SCHOOL ERP</span>
+        {/* Mobile close button (X) */}
+        <button onClick={closeSidebar} className="lg:hidden text-slate-400 hover:text-white">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      
+      {/* Navigation Links */}
+      <nav className="flex-1 p-4 space-y-2">
+        {menuItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              // 🔥 MAGIC LINE: Click karte hi closeSidebar function chalega aur mobile layout me close ho jayega
+              onClick={closeSidebar}
+              className={`block px-4 py-2.5 rounded transition-colors ${
+                isActive 
+                  ? 'bg-blue-600 text-white font-semibold' 
+                  : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+              }`}
+            >
+              {item.name}
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
+};
+
+export default Sidebar;
