@@ -83,8 +83,7 @@ The application follows a structured architecture based on modern web developmen
 
 Planned support:
 
-* MongoDB
-* Mongoose ODM
+* MySql
 * Schema Validation
 * Relationship Mapping
 
