@@ -4,8 +4,13 @@ require('dotenv').config();    // Dotenv ko sabse upar initialize karna achha ho
 
 const app = express();
 
+
+
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // Tumhaare frontend ka address
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes Imports (Apne folder structure ke hisab se path check kar lena)
@@ -13,8 +18,8 @@ const studentRoutes = require('./routes/studentRoutes');
 const feeRoutes = require('./routes/feeRoutes');
 
 // Mount Routes
-app.use('/api/student', studentRoutes);
-app.use('/api/fee', feeRoutes);
+app.use('/api/v1/students', studentRoutes);
+app.use('/api/v1/fees', feeRoutes);
 
 // Error Handling Imports
 const globalErrorHandler = require('./middlewares/errorController');
