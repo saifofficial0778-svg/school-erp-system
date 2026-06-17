@@ -1,260 +1,210 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { collectStudentFee } from '../services/api';
+import API from '../services/api';
 
-const FeeCollectionWithReceipt = () => {
-    // 1. Saved Students List
-    const [studentsList] = useState([
-        { id: 'S101', name: 'Aarav Sharma', class: '10th-A' },
-        { id: 'S102', name: 'Isha Patel', class: '12th-B' },
-        { id: 'S103', name: 'Kabir Verma', class: '9th-C' },
-        { id: 'S104', name: 'Diya Nair', class: '11th-A' },
-    ]);
 
-    // 2. Transaction History List
-    const [feeHistory, setFeeHistory] = useState([
-        { id: 1, rollNo: 'S101', name: 'Aarav Sharma', amount: '5000', type: 'Cash', date: '2026-06-08' },
-        { id: 2, rollNo: 'S102', name: 'Isha Patel', amount: '4500', type: 'Online', date: '2026-06-07' },
-    ]);
+const FeeCollection = () => {
 
-    // 3. Form Input State
-    const [formData, setFormData] = useState({
-        studentId: '',
-        amount: '',
-        paymentType: 'Cash',
-    });
+    const [feeList, setFeeList] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // 🚨 4. TODAY'S NEW STATE: Yeh dabba yaad rakhega ki abhi screen par kaunsi receipt preview ho rahi hai.
-    // Isme hum default roop se history ka pehla record (Aarav ka) set kar rahe hain.
-    const [selectedReceipt, setSelectedReceipt] = useState(feeHistory[0]);
+    // --- 📝 FORM STATES (Input fields ke liye) ---
+    const [rollNo, setRollNo] = useState('');
+    const [feeType, setFeeType] = useState('');
+    const [amount, setAmount] = useState('');
+    const [paymentMode, setPaymentMode] = useState('Cash');
 
-    // CHUNK 1: Input Change Handler (Kal tumne dho dala tha isse)
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
+    // --- 🛠️ CHUNK 1: useEffect (GET Real Data From Server) ---
+    useEffect(() => {
 
-    // 🛠️ CHUNK 2: Form Submit & Auto-Preview Logic
-    const handleFormSubmit = (e) => {
-        e.preventDefault();
+        const loadFeeData = async () => {
+            try {
+                setLoading(true);
 
-        if (formData.studentId === "" || formData.amount === "") {
-            alert("bhai value to bhar mere bacche");
-            return;
+                const res = await API.get('/fees');
+
+                // Safe-guard lagate hain jaise kal bacho ke liye lagaya tha
+                if (res && res.data && Array.isArray(res.data.data)) {
+                    setFeeList(res.data.data); // 🎯 Ekdum correct targeting!
+                } else if (res && res.data && Array.isArray(res.data)) {
+                    setFeeList(res.data);
+                } else if (res && Array.isArray(res)) {
+                    setFeeList(res);
+                } else {
+                    setFeeList([]);
+                }
+
+                setLoading(false)
+            } catch (error) {
+                console.error("Data load nhi ho rha hai")
+                setFeeList([])
+                setLoading(false)
+            }
+
         }
+        loadFeeData();
+    }, []);
 
-        const studentObj = studentsList.find((student) => student.id === formData.studentId);
 
-        const newLog = {
-            id: Date.now(),
-            rollNo: formData.studentId,
-            name: studentObj.name,
-            amount: formData.amount,
-            type: formData.paymentType,
-            date: '2026-06-09'
-        };
+    // --- 🛠️ CHUNK 2: Handle Fee Submit (POST Request logic) ---
+    const handleFeeSubmit = async (e) => {
+        e.preventDefault();
+        
+        if(!rollNo || !amount )  return alert("Saari fields bharo bhai!");
+        try{
+            const newFeePayload={
+                studentId:parseInt(rollNo),
+                feeType:feeType,
+                amountPaid:parseInt(amount),
+                status:"Paid",
+                paymentMode:paymentMode
+            };
+            console.log("Sending clean fee payload...", newFeePayload);
 
-        // Old Array me top par data insert kar diya
-        setFeeHistory([newLog, ...feeHistory]);
-
-        // 👇 BHAI, YAHAN APNA LOGIC LIKHO! (TASK 1)
-        setSelectedReceipt(newLog);
-
-        // Form Reset
-        setFormData({ studentId: '', amount: '', paymentType: 'Cash' });
-        alert("Fee Collected Successfully! 💸");
+            await API.post('/fees',newFeePayload)
+           setFeeList((prev) => [...(prev || []), newFeePayload]);
+            setAmount("")
+            setRollNo("")
+            alert("Fees chadh gayi boss! 🎉🔥");
+        }catch(error){
+            console.log("Transaction fail ho gayi bhai:", error)
+            alert("Kuch gadbad hui, check backend console!")
+        }
     };
-
-    // 🛠️ CHUNK 3: Print Button Trigger
-   const handlePrintReceipt = () => {
-    // 1. Apni asli receipt card ka andar ka HTML nikal lo
-    const receiptContent = document.getElementById('printable-receipt').innerHTML;
-    
-    // 2. Poore page ke body ka HTML backup lekar safe rakh lo
-    const originalContent = document.body.innerHTML;
-
-    // 3. Browser ki screen par sirf receipt ka content chada do
-    document.body.innerHTML = receiptContent;
-
-    // 4. Sarkaari print window khol do (Ab sirf receipt hi dikhegi toh wahi print hogi!)
-    window.print();
-
-    // 5. Print khatam hone ke baad, poora original page wapas load kar do
-    document.body.innerHTML = originalContent;
-    
-    // Extra tip: html reload hone par state wapas lane ke liye page refresh mardenge
-    window.location.reload();
-  };
 
     return (
-        <div className="space-y-8 p-4">
-            {/* Page Header */}
+        <div className="space-y-6 p-4">
+            {/* 💳 Page Header */}
             <div>
-                <h1 className="text-2xl font-bold text-gray-800">Fee Module — Invoice Center</h1>
-                <p className="text-sm text-gray-500">Collect fees, preview premium receipts, and print instantly</p>
+                <h1 className="text-2xl font-bold text-gray-800">Fee Management & Connect</h1>
+                <p className="text-sm text-gray-500">Live ledger integration with school financial database</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* 📥 LEFT COLUMN: Form Container */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit space-y-6">
-                    <h2 className="text-lg font-bold text-gray-800 border-b pb-2">New Fee Receipt</h2>
+                {/* 📋 LEFT SIDE: COLLECT FEE FORM */}
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm h-fit">
+                    <h2 className="text-lg font-bold text-gray-800 mb-4">💰 Collect New Fee</h2>
 
-                    <form onSubmit={handleFormSubmit} className="space-y-4">
+                    <form onSubmit={handleFeeSubmit} className="space-y-4">
+
+                        {/* 1. Student ID / Roll No */}
                         <div>
-                            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Select Student</label>
-                            <select
-                                name="studentId"
-                                value={formData.studentId}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                            >
-                                <option value="">-- Choose Student --</option>
-                                {studentsList.map((student) => (
-                                    <option key={student.id} value={student.id}>
-                                        {student.name} ({student.class})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Amount (₹)</label>
+                            <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Student ID / Roll No</label>
                             <input
-                                type="number"
-                                name="amount"
-                                placeholder="Enter amount"
-                                value={formData.amount}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                type="text"
+                                placeholder="e.g. 1"
+                                value={rollNo}
+                                onChange={(e) => setRollNo(e.target.value)}
+                                className="w-full bg-slate-50 border border-gray-200 px-3 py-2 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors"
                             />
                         </div>
 
+                        {/* 2. Fee Type (Name field ko humne change kar diya!) */}
                         <div>
-                            <label className="block text-xs font-semibold text-gray-600 uppercase mb-2">Payment Mode</label>
-                            <div className="flex gap-4">
-                                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="paymentType"
-                                        value="Cash"
-                                        checked={formData.paymentType === 'Cash'}
-                                        onChange={handleInputChange}
-                                        className="text-blue-600 focus:ring-blue-500"
-                                    />
-                                    💸 Cash
-                                </label>
-                                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="paymentType"
-                                        value="Online"
-                                        checked={formData.paymentType === 'Online'}
-                                        onChange={handleInputChange}
-                                        className="text-blue-600 focus:ring-blue-500"
-                                    />
-                                    🌐 Online
-                                </label>
-                            </div>
+                            <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Fee Type</label>
+                            <select
+                                value={feeType} 
+                                onChange={(e) => setFeeType(e.target.value)}
+                                className="w-full bg-slate-50 border border-gray-200 px-3 py-2 rounded-xl text-sm focus:outline-none focus:border-blue-500 cursor-pointer"
+                            >
+                                <option value="Tuition Fee">📚 Tuition Fee</option>
+                                <option value="Exam Fee">📝 Exam Fee</option>
+                                <option value="Transport Fee">🚌 Transport Fee</option>
+                                <option value="Library Fee">📖 Library Fee</option>
+                            </select>
+                        </div>
+
+                        {/* 3. Amount Paid */}
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Amount Paid (₹)</label>
+                            <input
+                                type="number"
+                                placeholder="e.g. 5000"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                className="w-full bg-slate-50 border border-gray-200 px-3 py-2 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                            />
+                        </div>
+
+                        {/* 4. Payment Mode */}
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Payment Mode</label>
+                            <select
+                                value={paymentMode}
+                                onChange={(e) => setPaymentMode(e.target.value)}
+                                className="w-full bg-slate-50 border border-gray-200 px-3 py-2 rounded-xl text-sm focus:outline-none focus:border-blue-500 cursor-pointer"
+                            >
+                                <option value="Cash">💵 Cash</option>
+                                <option value="Online">📱 UPI / Online</option>
+                                <option value="Cheque">🏦 Bank Cheque</option>
+                            </select>
                         </div>
 
                         <button
                             type="submit"
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition-colors text-sm shadow-sm"
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm py-2.5 rounded-xl transition-all shadow-sm"
                         >
-                            ➕ Collect Fee
+                            🎯 Confirm & Submit Transaction
                         </button>
                     </form>
                 </div>
 
-                {/* 📜 MIDDLE COLUMN: Today's Target — Receipt Preview Card */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between min-h-[400px]">
-                    <div>
-                        <h2 className="text-lg font-bold text-gray-800 border-b pb-2 mb-6">Live Receipt Preview</h2>
-
-                        {/* Asli Receipt Card Structure */}
-                        {selectedReceipt ? (
-                            <div id="printable-receipt" className="border-2 border-dashed border-gray-200 rounded-xl p-5 bg-amber-50/20 space-y-4">
-                                <div className="text-center border-b pb-3 border-gray-100">
-                                    <h3 className="font-bold text-slate-800 tracking-wide uppercase text-sm">🍁 GLOBAL PUBLIC SCHOOL</h3>
-                                    <p className="text-[10px] text-gray-400 font-mono">INVOICE SEC-D9 / OFFICIAL</p>
-                                </div>
-
-                                {/* Receipt Details fields mapping data */}
-                                <div className="space-y-2.5 text-xs">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-400">Transaction ID:</span>
-                                        <span className="font-mono font-semibold text-gray-700">{selectedReceipt.id}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-400">Roll Number:</span>
-                                        <span className="font-semibold text-gray-800">{selectedReceipt.rollNo}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-400">Student Name:</span>
-                                        <span className="font-bold text-slate-900">{selectedReceipt.name}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-400">Payment Mode:</span>
-                                        <span className="font-semibold text-indigo-600">{selectedReceipt.type}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-400">Date:</span>
-                                        <span className="font-mono text-gray-600">{selectedReceipt.date}</span>
-                                    </div>
-                                    <hr className="border-gray-100 my-2" />
-                                    <div className="flex justify-between items-center pt-1">
-                                        <span className="text-sm font-bold text-gray-700">Total Paid:</span>
-                                        <span className="text-lg font-black text-emerald-600">₹{selectedReceipt.amount}</span>
-                                    </div>
-                                </div>
-
-                                <div className="text-center pt-4 border-t border-dotted border-gray-200">
-                                    <p className="text-[10px] text-emerald-600 font-medium bg-emerald-50 inline-block px-2 py-0.5 rounded">✓ Verified Electronic Copy</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <p className="text-sm text-gray-400 text-center py-12">No transaction selected for preview</p>
-                        )}
-                    </div>
-
-                    {/* Print Button Actuator */}
-                    <button
-                        onClick={handlePrintReceipt}
-                        disabled={!selectedReceipt}
-                        className="w-full mt-4 bg-slate-800 hover:bg-slate-900 text-white font-medium py-2 rounded-lg transition-colors text-sm shadow-sm disabled:opacity-50"
-                    >
-                        🖨️ Print Official Receipt
-                    </button>
-                </div>
-
-                {/* 📊 RIGHT COLUMN: History Table with Row Selection */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="p-4 border-b border-gray-50 flex justify-between items-center bg-slate-50/50">
-                        <h2 className="text-md font-bold text-gray-800">Logs (Click to view)</h2>
-                    </div>
-
-                    <div className="overflow-x-auto text-xs">
+                {/* 📊 RIGHT SIDE: LIVE TRANSACTION TABLE */}
+                <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-slate-50/70 text-slate-500 uppercase font-semibold border-b border-gray-100">
-                                    <th className="px-4 py-2.5">Student Name</th>
-                                    <th className="px-4 py-2.5">Amount</th>
-                                    <th className="px-4 py-2.5">Action</th>
+                                <tr className="bg-slate-50 text-slate-500 uppercase text-xs font-semibold tracking-wider border-b border-gray-100">
+                                    <th className="px-6 py-3.5">Student ID</th>
+                                    <th className="px-6 py-3.5">Fee Type</th>
+                                    <th className="px-6 py-3.5">Amount Paid</th>
+                                    <th className="px-6 py-3.5">Mode</th>
+                                    <th className="px-6 py-3.5">Status</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 text-gray-700">
-                                {feeHistory.map((log) => (
-                                    <tr
-                                        key={log.id}
-                                        onClick={() => setSelectedReceipt(log)} // 🔥 Remote control yahan laga diya!
-                                        className={`cursor-pointer transition-colors ${selectedReceipt?.id === log.id ? 'bg-blue-50/60 hover:bg-blue-50' : 'hover:bg-slate-50/50'}`}
-                                    >
-                                        <td className="px-4 py-3 font-medium text-gray-900">{log.name}</td>
-                                        <td className="px-4 py-3 font-semibold text-emerald-600">₹{log.amount}</td>
-                                        <td className="px-4 py-3">
-                                            <button className="text-[10px] text-blue-600 font-medium hover:underline">Preview</button>
+                            <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+
+                                {!feeList || feeList.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5" className="px-6 py-8 text-center text-gray-400">
+                                            No transactions found on server database.
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    feeList.map((fee, index) => (
+                                        <tr key={fee.feeId || index} className="hover:bg-slate-50/50 transition-colors">
+                                            {/* 1. Student ID */}
+                                            <td className="px-6 py-4 font-mono text-xs font-bold text-gray-500">
+                                                {fee.studentId}
+                                            </td>
+
+                                            {/* 2. Fee Type */}
+                                            <td className="px-6 py-4 font-semibold text-gray-900">
+                                                {fee.feeType}
+                                            </td>
+
+                                            {/* 3. Amount Paid */}
+                                            <td className="px-6 py-4 text-emerald-600 font-bold">
+                                                ₹{fee.amountPaid}
+                                            </td>
+
+                                            {/* 4. Payment Mode */}
+                                            <td className="px-6 py-4 font-medium text-gray-600">
+                                                {fee.paymentMode || "Cash"}
+                                            </td>
+
+                                            {/* 5. Status Badge */}
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${fee.status === 'Paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                                                    }`}>
+                                                    {fee.status || "Paid"}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+
                             </tbody>
                         </table>
                     </div>
@@ -265,4 +215,4 @@ const FeeCollectionWithReceipt = () => {
     );
 };
 
-export default FeeCollectionWithReceipt;
+export default FeeCollection;
