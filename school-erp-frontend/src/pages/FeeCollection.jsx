@@ -10,7 +10,7 @@ const FeeCollection = () => {
 
     // --- 📝 FORM STATES (Input fields ke liye) ---
     const [rollNo, setRollNo] = useState('');
-    const [feeType, setFeeType] = useState('');
+    const [feeType, setFeeType] = useState('Tuition Fee');
     const [amount, setAmount] = useState('');
     const [paymentMode, setPaymentMode] = useState('Cash');
 
