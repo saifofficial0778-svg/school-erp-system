@@ -16,10 +16,12 @@ app.use(express.json());
 // Routes Imports (Apne folder structure ke hisab se path check kar lena)
 const studentRoutes = require('./routes/studentRoutes'); 
 const feeRoutes = require('./routes/feeRoutes');
+const attendanceRoutes=require('./routes/attendanceRoutes')
 
 // Mount Routes
 app.use('/api/v1/students', studentRoutes);
 app.use('/api/v1/fees', feeRoutes);
+app.use('/api/v1/attendance',attendanceRoutes);
 
 // Error Handling Imports
 const globalErrorHandler = require('./middlewares/errorController');
