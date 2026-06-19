@@ -9,6 +9,8 @@ import FeeCollection from './pages/FeeCollection';
 import PendingFees from './pages/PendingFees';
 import Attendance from './pages/Attendance';
 import AttendanceReport from './pages/AttendanceReport';
+import StudentForm from './pages/StudentForm';
+
 
 function App() {
   return (
@@ -28,6 +30,7 @@ function App() {
           <Route path="/pending-fees" element={<PendingFees/>}/>
           <Route path="/attendance" element={<Attendance/>}/>
           <Route path="/attendance-report" element={<AttendanceReport/>}/>
+          <Route path="/Student/new" element={<StudentForm/>}/>
         </Route>
 
         {/* Galat URL par direct login par bhejega */}

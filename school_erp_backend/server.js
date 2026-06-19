@@ -17,11 +17,13 @@ app.use(express.json());
 const studentRoutes = require('./routes/studentRoutes'); 
 const feeRoutes = require('./routes/feeRoutes');
 const attendanceRoutes=require('./routes/attendanceRoutes')
+const classRoutes=require('./routes/classRoutes')
 
 // Mount Routes
 app.use('/api/v1/students', studentRoutes);
 app.use('/api/v1/fees', feeRoutes);
 app.use('/api/v1/attendance',attendanceRoutes);
+app.use('/api/v1/classes', classRoutes);
 
 // Error Handling Imports
 const globalErrorHandler = require('./middlewares/errorController');
