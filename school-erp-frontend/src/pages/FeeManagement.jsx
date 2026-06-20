@@ -1,154 +1,142 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import API from '../services/api';
 
-const FeeManagement = () => {
-    // 1. Students Fee Data (Memory Box)
-    const [feeRecords, setFeeRecords] = useState([
-        { id: 1, name: 'Aarav Sharma', rollNo: '2026A01', class: '10th-A', amount: '₹5,000', status: 'Paid', date: '2026-06-01' },
-        { id: 2, name: 'Isha Patel', rollNo: '2026A02', class: '12th-B', amount: '₹5,000', status: 'Pending', date: '-' },
-        { id: 3, name: 'Kabir Verma', rollNo: '2026A03', class: '9th-C', amount: '₹4,500', status: 'Processing', date: '2026-06-05' },
-        { id: 4, name: 'Diya Nair', rollNo: '2026A04', class: '11th-A', amount: '₹5,500', status: 'Paid', date: '2026-05-28' },
-        { id: 5, name: 'Vivaan Joshi', rollNo: '2026A05', class: '10th-B', amount: '₹5,000', status: 'Pending', date: '-' },
-    ]);
+const FeesManagement = () => {
+  const [feeRecords, setFeeRecords] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [schoolId] = useState('1'); // Base ERP contextual ID
 
-    // 2. Search Text State
-    const [searchTerm, setSearchTerm] = useState('');
+  // 🔄 Live Database records pull lifecycle handler
+  const fetchLiveLedger = async () => {
+    try {
+      setLoading(true);
+      const res = await API.get(`/fees?schoolId=${schoolId}`);
+      if (res?.data?.success) {
+        setFeeRecords(res.data.data);
+      } else {
+        console.error("Backend failed response token check!");
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error("Network interface drop or connection rejection:", error.message);
+      setLoading(false);
+    }
+  };
 
-    // 3. Dropdown Filter State (All, Paid, Pending, Processing)
-    const [statusFilter, setStatusFilter] = useState('All');
+  useEffect(() => {
+    fetchLiveLedger();
+  }, []);
 
-    // 4. [LOGIC]: Search + Dropdown Filter Combo
-    const filteredRecords = feeRecords.filter((record) => {
-        const matchesSearch = record.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            record.rollNo.toLowerCase().includes(searchTerm.toLowerCase())
-
-        const matchesStatus = statusFilter === 'All' || record.status === statusFilter
-
-        return matchesSearch && matchesStatus
+  // Safe Dynamic Redirection Parser
+  const redirectToCollectionPage = (record) => {
+    const params = new URLSearchParams({
+      student_id: record.student_id,
+      name: record.full_name,
+      total: record.total_bill_amount,
+      paid: record.amount_paid
     });
+    window.location.href = `/fee-collection?${params.toString()}`;
+  };
 
-    // 5. [LOGIC]: Status Badges Color Assigner Function
-    const getStatusBadge = (status) => {
-        if (status === 'Paid') {
-            return 'bg-green-50 text-green-700 border-green-200';
-        } else if (status === 'Pending') {
-            return 'bg-red-50 text-red-700 border-red-200';
-        } else {
-            return 'bg-amber-50 text-amber-700 border-amber-200'; // Processing ke liye yellow/amber
-        }
-    };
+  // Live Query filter engine matching names or admission numbers
+  const filteredRecords = feeRecords.filter(record => {
+    const textStr = (record.full_name || '').toLowerCase();
+    const admStr = (record.admission_number || '').toString().toLowerCase();
+    const target = searchQuery.toLowerCase();
+    return textStr.includes(target) || admStr.includes(target);
+  });
 
-    // 6. [LOGIC]: Instant Status Toggle (Backend style update)
-    const toggleFeeStatus = (id) => {
-        const updatedRecords = feeRecords.map((record) => {
-            if (record.id === id) {
-                // Agar Paid hai toh Pending kar do, Pending hai toh Processing, aur Processing hai toh Paid!
-                const nextStatus = record.status === 'Paid' ? 'Pending' : record.status === 'Pending' ? 'Processing' : 'Paid';
-                const nextDate = nextStatus === 'Paid' ? '2026-06-06' : '-';
-                return { ...record, status: nextStatus, date: nextDate };
-            }
-            return record;
-        });
-        setFeeRecords(updatedRecords);
-    };
-
-    return (
-        <div className="space-y-6">
-            {/* Top Title Bar */}
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Fee Management</h1>
-                    <p className="text-sm text-gray-500">Track and manage student tuition fees</p>
-                </div>
-                <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl border border-blue-100 text-sm font-semibold">
-                    Total Records: {filteredRecords.length}
-                </div>
-            </div>
-
-            {/* 🛠️ CHUNK 1: Filters Top Bar */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                {/* Search Bar */}
-                <div className="w-full sm:w-80">
-                    <input
-                        type="text"
-                        placeholder="Search student or roll no..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    />
-                </div>
-
-                {/* Dropdown Filter */}
-                <div className="w-full sm:w-auto flex items-center gap-2">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status:</label>
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="bg-gray-50 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="All">All Statuses</option>
-                        <option value="Paid">Paid Only</option>
-                        <option value="Pending">Pending Only</option>
-                        <option value="Processing">Processing Only</option>
-                    </select>
-                </div>
-            </div>
-
-            {/* 📊 CHUNK 2: Fee Table View */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-slate-50 text-slate-600 uppercase text-xs font-semibold tracking-wider border-b border-gray-100">
-                                <th className="px-6 py-4">Roll No</th>
-                                <th className="px-6 py-4">Student Name</th>
-                                <th className="px-6 py-4">Class</th>
-                                <th className="px-6 py-4">Fee Amount</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4">Payment Date</th>
-                                <th className="px-6 py-4 text-center">Quick Action</th>
-                            </tr>
-                        </thead>
-
-                        <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
-                            {filteredRecords.length > 0 ? (
-                                filteredRecords.map((record) => (
-                                    <tr key={record.id} className="hover:bg-slate-50/80 transition-colors">
-                                        <td className="px-6 py-4 font-mono text-xs font-semibold text-blue-600">{record.rollNo}</td>
-                                        <td className="px-6 py-4 font-medium text-gray-900">{record.name}</td>
-                                        <td className="px-6 py-4 text-gray-500">{record.class}</td>
-                                        <td className="px-6 py-4 font-semibold text-gray-900">{record.amount}</td>
-
-                                        {/* Dynamic Status Badges */}
-                                        <td className="px-6 py-4">
-                                            <span className={`px-2.5 py-1 text-xs font-semibold border rounded-md shadow-sm ${getStatusBadge(record.status)}`}>
-                                                {record.status}
-                                            </span>
-                                        </td>
-
-                                        <td className="px-6 py-4 font-mono text-xs text-gray-500">{record.date}</td>
-
-                                        {/* Toggle Button Action */}
-                                        <td className="px-6 py-4 text-center">
-                                            <button
-                                                onClick={() => toggleFeeStatus(record.id)}
-                                                className="text-xs bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 px-3 py-1.5 rounded-md font-medium border border-slate-200 hover:border-blue-200 transition-all shadow-sm"
-                                            >
-                                                🔄 Change Status
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="7" className="px-6 py-10 text-center text-gray-400 italic">No matching fee records found.</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+  return (
+    <div className="space-y-6 p-6 bg-slate-50/50 min-h-screen font-sans">
+      
+      {/* Upper Context Branding bar */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+        <div>
+          <h2 className="text-xl font-black text-slate-800 tracking-tight">Accounts Desk Terminal</h2>
+          <p className="text-xs text-gray-400 font-medium mt-0.5">Manage student fees, tracking logs, and cash counters live.</p>
         </div>
-    );
+        
+        {/* Search Matrix */}
+        <div className="w-full sm:w-72">
+          <input 
+            type="text"
+            placeholder="Search via Name or Admission Key..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full text-xs bg-slate-50 border border-gray-200 px-4 py-2.5 rounded-xl focus:outline-none focus:border-purple-600 font-medium transition-all text-slate-700 shadow-inner"
+          />
+        </div>
+      </div>
+
+      {/* Main Datatable Wrapper */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <table className="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr className="bg-slate-50 text-gray-400 font-black tracking-wider uppercase border-b border-gray-100">
+              <th className="px-6 py-4">Student Identity Profile</th>
+              <th className="px-6 py-4">Status</th>
+              <th className="px-6 py-4">Cleared / Total Fees</th>
+              <th className="px-6 py-4">Outstanding Balance</th>
+              <th className="px-6 py-4 text-center">Operation Desk</th>
+            </tr>
+          </thead>
+          
+          <tbody className="divide-y divide-gray-100 text-gray-700 font-semibold">
+            {loading ? (
+              <tr>
+                <td colSpan="5" className="px-6 py-12 text-center text-gray-400 font-medium italic">
+                  Bhai backend se live rows fetch ho rhi hain, thoda hold karo... ⏳
+                </td>
+              </tr>
+            ) : filteredRecords.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="px-6 py-12 text-center text-gray-400 font-medium italic">
+                  Bhai database me koi real record match nahi mila!
+                </td>
+              </tr>
+            ) : (
+              filteredRecords.map((record, idx) => {
+                const balance = parseFloat(record.total_bill_amount || 0) - parseFloat(record.amount_paid || 0);
+                return (
+                  <tr key={record.student_id || idx} className="hover:bg-slate-50/30 transition-colors">
+                    <td className="px-6 py-4 font-bold text-gray-900">
+                      <div>{record.full_name}</div>
+                      <div className="text-[10px] text-gray-400 font-medium font-mono mt-0.5">Adm: #{record.admission_number || 'N/A'}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`font-bold px-2.5 py-0.5 rounded-full uppercase text-[9px] ${
+                        record.status === 'paid' ? 'bg-emerald-50 text-emerald-600' : record.status === 'partially_paid' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
+                      }`}>{record.status}</span>
+                    </td>
+                    <td className="px-6 py-4 font-mono text-slate-600">
+                      ₹{parseFloat(record.amount_paid).toLocaleString('en-IN', { minimumFractionDigits: 2 })} / 
+                      <span className="text-gray-400"> ₹{parseFloat(record.total_bill_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                    </td>
+                    <td className={`px-6 py-4 font-mono font-bold ${balance > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                      ₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-6 py-3 text-center">
+                      <button 
+                        onClick={() => redirectToCollectionPage(record)}
+                        disabled={balance <= 0 && record.status === 'paid'}
+                        className={`text-white text-xs font-bold px-4 py-1.5 rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer ${
+                          balance <= 0 && record.status === 'paid' ? 'bg-slate-300 pointer-events-none shadow-none' : 'bg-purple-600 hover:bg-purple-700'
+                        }`}
+                      >
+                        {balance <= 0 && record.status === 'paid' ? "Settled ✓" : "Collect Fee"}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  );
 };
 
-export default FeeManagement;
+export default FeesManagement;

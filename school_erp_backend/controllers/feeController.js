@@ -1,37 +1,103 @@
-const feesRecords = require('../models/feeModel');
-const students = require('../models/studentModel'); // Import kiya taaki student check kar sakein
+// controllers/feeController.js
+const Fee = require('../models/feeModel');
 
-exports.getAllFees = (req, res) => {
-    const { studentId } = req.query;
-    if (studentId) {
-        const studentFees = feesRecords.filter(f => f.studentId === parseInt(studentId));
-        return res.status(200).json({ success: true, data: studentFees });
+// 🟢 1. GET ALL FEES FROM DB (With Live Left Join Student Profiles)
+exports.getAllFees = async (req, res) => {
+    try {
+        const schoolId = req.query.schoolId || 1;
+        const { studentId } = req.query;
+
+        // Agar specific single student ki history chahiye
+        if (studentId) {
+            const studentFees = await Fee.fetchByStudent(schoolId, studentId);
+            return res.status(200).json({ success: true, data: studentFees });
+        }
+
+        // ✅ FIXED: Ab ye naye model ke sahi function (fetchAllWithStudents) ko hit karega
+        const allFees = await Fee.fetchAllWithStudents(schoolId);
+        
+        return res.status(200).json({ 
+            success: true, 
+            count: allFees.length, 
+            data: allFees 
+        });
+    } catch (error) {
+        console.error("Fetch fees controller crash:", error.message);
+        return res.status(500).json({ 
+            success: false, 
+            message: "Database se live records list lane me gadbad hui!" 
+        });
     }
-    res.status(200).json({ success: true, count: feesRecords.length, data: feesRecords });
 };
 
-exports.addFee = (req, res) => {
-    const { studentId, amountPaid, feeType, status } = req.body;
+// 🔴 2. NAYI FEE ADD KARNA (With Automatic Duplicate Key Updates)
+exports.addFee = async (req, res) => {
+    try {
+        console.log("--> Received payload inside fee controller:", req.body);
 
-    if (!studentId || !amountPaid || !feeType || !status) {
-        return res.status(400).json({ success: false, message: "Bhai, fees ki saari details bharo!" });
+        const { 
+            schoolId, 
+            studentId, 
+            total_bill_amount, 
+            amount_paid, 
+            payment_mode, 
+            status, 
+            transaction_id 
+        } = req.body;
+
+        // Validation check strictly matching frontend keys
+        if (!schoolId || !studentId || !amount_paid || !payment_mode || !status) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Bhai, mandatory parameters (schoolId, studentId, amount_paid, payment_mode, status) missing hain!" 
+            });
+        }
+
+        const paymentDate = new Date().toISOString().split('T')[0];
+
+        // Trigger Model with full safety parse parameters
+        const newFee = await Fee.recordPayment(
+            parseInt(schoolId), 
+            parseInt(studentId), 
+            parseFloat(total_bill_amount || amount_paid), 
+            parseFloat(amount_paid), 
+            paymentDate, 
+            payment_mode.toLowerCase(), 
+            status.toLowerCase(), 
+            transaction_id || `TXN_${Date.now()}`
+        );
+
+        return res.status(201).json({ 
+            success: true, 
+            message: "Fees chadh gayi boss SQL ledger me! 🎉💳", 
+            data: newFee 
+        });
+
+    } catch (error) {
+        console.error("POST Fee Controller Error:", error.message);
+        return res.status(500).json({ 
+            success: false, 
+            message: error.message || "DB me fee add karne me error aaya!" 
+        });
     }
+};
 
-    // 🎯 Sahi check: actual students array me id dhoondo!
-    const studentExists = students.some(s => s.id === parseInt(studentId));
-    if (!studentExists) {
-        return res.status(404).json({ success: false, message: "Bhaya, is ID ka koi student hi nahi hai system me." });
+// 📊 3. GET PIE CHART DATA FOR ANALYTICS
+exports.getFeePieChartData = async (req, res) => {
+    try {
+        const schoolId = req.query.schoolId || 1;
+        const analyticsData = await Fee.fetchFeeStatusPieData(schoolId);
+
+        return res.status(200).json({
+            success: true,
+            message: "Pie chart data ready!",
+            data: analyticsData
+        });
+    } catch (error) {
+        console.error("Pie data extraction failure:", error.message);
+        return res.status(500).json({ 
+            success: false, 
+            message: "Analytics nikalne me error!" 
+        });
     }
-
-    const newFee = {
-        feeId: feesRecords.length + 101,
-        studentId: parseInt(studentId),
-        amountPaid: parseFloat(amountPaid),
-        feeType,
-        status,
-        date: new Date().toISOString().split('T')[0] // Sahi bracket ke sath ()
-    };
-
-    feesRecords.push(newFee);
-    res.status(201).json({ success: true, message: "Fees chadh gayi boss!", data: newFee });
 };

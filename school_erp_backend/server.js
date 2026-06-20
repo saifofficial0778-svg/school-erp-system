@@ -24,6 +24,8 @@ app.use('/api/v1/students', studentRoutes);
 app.use('/api/v1/fees', feeRoutes);
 app.use('/api/v1/attendance',attendanceRoutes);
 app.use('/api/v1/classes', classRoutes);
+// app.use('/api/v1/report', attendanceRoutes);
+
 
 // Error Handling Imports
 const globalErrorHandler = require('./middlewares/errorController');

@@ -32,7 +32,7 @@ const Navbar = ({ toggleSidebar }) => {
         
         {/* Page Title */}
         <div className="text-base sm:text-lg font-semibold text-gray-700 hidden sm:block">
-          Welcome Back, Admin 👋
+          Welcome, Admin
         </div>
       </div>
 

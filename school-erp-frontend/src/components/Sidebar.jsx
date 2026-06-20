@@ -8,7 +8,6 @@ const Sidebar = ({ closeSidebar }) => {
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'Students', path: '/students' },
     { name: 'Fee Management', path: '/fees' },
-    {name: 'Fee Collection',path:'/fee-collection'},
     {name:"Pending Fee",path:'/pending-fees'},
     {name:"Attendance",path:'/attendance'},
     {name:"Attendance Report",path:"/attendance-report"},
@@ -20,7 +19,7 @@ const Sidebar = ({ closeSidebar }) => {
     <div className="w-64 bg-slate-800 text-white flex flex-col h-full shadow-xl">
       {/* Heading Group */}
       <div className="p-5 text-xl font-bold border-b border-slate-700 tracking-wider flex justify-between items-center">
-        <span>🏫 SCHOOL ERP</span>
+        <span>SCHOOL ERP</span>
         {/* Mobile close button (X) */}
         <button onClick={closeSidebar} className="lg:hidden text-slate-400 hover:text-white">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

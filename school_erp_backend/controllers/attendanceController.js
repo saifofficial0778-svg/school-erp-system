@@ -4,7 +4,7 @@ const Attendance = require('../models/attendanceModel');
 // 🟢 1. GET ALL ATTENDANCE LOGS FROM LIVE DB
 exports.getAttendanceByDate = async (req, res) => {
     try {
-        const schoolId = req.query.schoolId || 1; 
+        const schoolId = req.query.schoolId || 1;
         const date = req.query.date || null;
 
         // DB function triggered
@@ -28,18 +28,18 @@ exports.markAttendance = async (req, res) => {
 
         // 🛡️ Safe-guard 1: Check mandatory fields
         if (!schoolId || !studentId || !date || !status) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Bhai, schoolId, studentId, date, aur status bharna mandatory hai!" 
+            return res.status(400).json({
+                success: false,
+                message: "Bhai, schoolId, studentId, date, aur status bharna mandatory hai!"
             });
         }
 
         // 🛡️ Safe-guard 2: ENUM validation match
         const allowedStatus = ['present', 'absent', 'leave'];
         if (!allowedStatus.includes(status.toLowerCase())) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Bhai, status sirf present, absent, ya leave ho sakta hai!" 
+            return res.status(400).json({
+                success: false,
+                message: "Bhai, status sirf present, absent, ya leave ho sakta hai!"
             });
         }
 
@@ -69,6 +69,70 @@ exports.markAttendance = async (req, res) => {
             });
         }
 
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 🔵 3. GET PIE CHART DATA FOR ANALYTICS
+exports.getAttendancePieData = async (req, res) => {
+    try {
+        const schoolId = req.query.schoolId || 1;
+        const data = await Attendance.fetchAnalyticsForPie(schoolId);
+
+        return res.status(200).json({
+            success: true,
+            data: data
+        });
+    } catch (error) {
+        console.error("Pie data error:", error.message);
+        return res.status(500).json({ success: false, message: "Error!" });
+    }
+};
+
+// 📊 4. GET MONTHLY ATTENDANCE INSIGHTS REPORT
+exports.getAttendanceReport = async (req, res) => {
+    try {
+        const schoolId = req.query.schoolId || 1;
+        
+        // ✅ FIXED: AttendanceModel ki jagah 'Attendance' variable use kiya jo top par import hai
+        const rawRows = await Attendance.fetchMonthlyReport(schoolId);
+        
+        const studentMap = {};
+
+        rawRows.forEach(row => {
+            const sId = row.student_id;
+            if (!sId) return;
+
+            // ✅ Exact aliases mapped matching step 1
+            if (!studentMap[sId]) {
+                studentMap[sId] = {
+                    student_id: sId,
+                    full_name: row.student_name || 'Unknown Student',
+                    admission_number: row.admission_no || sId,
+                    total_classes: 0,
+                    attended_classes: 0
+                };
+            }
+
+            // ✅ Attendance metrics evaluation using log_status
+            if (row.attendance_id) {
+                studentMap[sId].total_classes += 1;
+                if (row.log_status === 'present') {
+                    studentMap[sId].attended_classes += 1;
+                }
+            }
+        });
+
+        const finalReportData = Object.values(studentMap);
+        
+        return res.status(200).json({
+            success: true,
+            count: finalReportData.length,
+            data: finalReportData
+        });
+
+    } catch (error) {
+        console.error("Critical Report Controller Crash Log:", error.message);
         return res.status(500).json({ success: false, message: error.message });
     }
 };
