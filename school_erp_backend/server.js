@@ -40,7 +40,7 @@ app.all(/.*/, (req, res, next) => {
 app.use(globalErrorHandler);
 
 // Port ko process.env se uthao, nahi toh 3000 fallback
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
     console.log(`🚀 ERP Backend MVC Server running on port ${PORT}`);
