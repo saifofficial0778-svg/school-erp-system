@@ -9,7 +9,7 @@ const app = express();
 // Middlewares
 app.use(cors({
   origin: '*', // Tumhaare frontend ka address
-  credentials: true
+  credentials: true 
 }));
 app.use(express.json());
 
