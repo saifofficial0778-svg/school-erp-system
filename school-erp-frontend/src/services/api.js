@@ -35,9 +35,10 @@ API.interceptors.request.use(
 // ==========================================
 
 // Get All Students List
-export const fetchStudents = async () => {
+export const fetchStudents = async (schoolId) => { // <-- Yahan schoolId accept karo
   try {
-    const response = await API.get('/students');
+    // Agar schoolId hai toh use query param me bhejo, nahi toh normal get
+    const response = await API.get(schoolId ? `/students?schoolId=${schoolId}` : '/students');
     return response.data;
   } catch (error) {
     console.error("Error fetching students:", error);
