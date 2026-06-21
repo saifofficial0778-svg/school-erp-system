@@ -159,7 +159,7 @@ const AttendanceReport = () => {
       </div>
 
     </div>
-  );
+  ); 
 };
 
 export default AttendanceReport;
