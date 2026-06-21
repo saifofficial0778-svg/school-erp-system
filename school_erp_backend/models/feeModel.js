@@ -39,6 +39,28 @@ const Fee = {
         `;
         const [rows] = await pool.query(query, [schoolId]);
         return rows;
+    },
+
+    fetchFeeReports: async (schoolId) => {
+        const query = `
+            SELECT 
+                s.id AS student_id,
+                s.full_name,
+                s.admission_number,
+                c.class_name,
+                IFNULL(f.total_bill_amount, 12000.00) AS total_bill_amount,
+                IFNULL(f.amount_paid, 0.00) AS amount_paid,
+                -- Agar entry nahi h toh 'pending', nahi toh jo status h wahi
+                IFNULL(f.status, 'pending') AS status,
+                f.payment_date
+            FROM students s
+            LEFT JOIN student_class_mapping scm ON s.id = scm.student_id
+            LEFT JOIN classes c ON scm.class_id = c.id
+            LEFT JOIN fees f ON s.id = f.student_id AND s.school_id = f.school_id
+            WHERE s.school_id = ?;
+        `;
+        const [rows] = await pool.query(query, [schoolId]);
+        return rows;
     }
 };
 

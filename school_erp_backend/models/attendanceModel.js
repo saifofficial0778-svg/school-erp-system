@@ -20,7 +20,10 @@ const Attendance = {
     markSingle: async (schoolId, studentId, date, status, remarks) => {
         const query = `
             INSERT INTO attendance (school_id, student_id, date, status, remarks) 
-            VALUES (?, ?, ?, ?, ?);
+            VALUES (?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE 
+        status = VALUES(status),     -- 🔥 Agar pehle se entry hai, toh status naye wale se update ho jayega
+        remarks = VALUES(remarks);            
         `;
         const [result] = await pool.query(query, [schoolId, studentId, date, status, remarks]);
         return { id: result.insertId, schoolId, studentId, date, status, remarks };

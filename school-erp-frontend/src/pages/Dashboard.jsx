@@ -19,66 +19,75 @@ const AdminDashboard = () => {
   const [attendancePieData, setAttendancePieData] = useState([]);
   const [monthlyTrendData, setMonthlyTrendData] = useState([]);
 
-  useEffect(() => {
-    const fetchDashboardAnalytics = async () => {
-      try {
-        setLoading(true);
+  // AdminDashboard.jsx ke andar ka useEffect block isse badal do:
 
-        // 🎯 1. Fetch live data from backend master tables
-        const studentRes = await API.get(`/students?schoolId=${schoolId}`);
-        const attendanceRes = await API.get(`/attendance?schoolId=${schoolId}&date=2026-06-19`);
-        const feesRes = await API.get(`/fees?schoolId=${schoolId}`); 
+useEffect(() => {
+  const fetchDashboardAnalytics = async () => {
+    try {
+      setLoading(true);
 
-        let sCount = studentRes?.data?.success ? (studentRes.data.data?.length || 0) : 0;
-        let attLogs = attendanceRes?.data?.success ? (attendanceRes.data.data || []) : [];
-        let feeLogs = feesRes?.data?.success ? (feesRes.data.data || []) : [];
+      // 🟢 Aaj ki date ko dynamic YYYY-MM-DD format me compute karna
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0'); 
+      const day = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${year}-${month}-${day}`; // 🔥 Ab ye humesha live 'aaj' ki date banayega
 
-        // 💰 Dynamic calculation of gross cash collected
-        const totalCash = feeLogs.reduce((sum, item) => sum + parseFloat(item.amount_paid || 0), 0);
+      // 🎯 Live data fetch matching current date tunnel
+      const studentRes = await API.get(`/students?schoolId=${schoolId}`);
+      const attendanceRes = await API.get(`/attendance?schoolId=${schoolId}&date=${todayStr}`); // 🚀 FIXED: todayStr pass kiya
+      const feesRes = await API.get(`/fees?schoolId=${schoolId}`); 
 
-        // 📈 Dynamic attendance logic counters
-        const pCount = attLogs.filter(r => r.status === 'present').length;
-        const aCount = attLogs.filter(r => r.status === 'absent').length;
-        const lCount = attLogs.filter(r => r.status === 'leave').length;
-        const totalAtt = attLogs.length;
-        const attRate = totalAtt > 0 ? ((pCount / totalAtt) * 100).toFixed(1) : 0;
+      let sCount = studentRes?.data?.success ? (studentRes.data.data?.length || 0) : 0;
+      let attLogs = attendanceRes?.data?.success ? (attendanceRes.data.data || []) : [];
+      let feeLogs = feesRes?.data?.success ? (feesRes.data.data || []) : [];
 
-        setStats({
-          totalStudents: sCount,
-          totalFeesCollected: totalCash,
-          todayAttendancePercentage: parseFloat(attRate)
-        });
+      // Gross Cash computation
+      const totalCash = feeLogs.reduce((sum, item) => sum + parseFloat(item.amount_paid || 0), 0);
 
-        // 🟢🔴🟡 FIX: Strict Color Mapping Array for Pie Chart
-        setAttendancePieData([
-          { name: 'Present', value: pCount, color: '#10B981' }, // Strictly Green
-          { name: 'Absent', value: aCount, color: '#EF4444' },   // Strictly Red
-          { name: 'On Leave', value: lCount, color: '#F59E0B' },  // Strictly Amber
-        ]);
+      // Live attendance dynamic calculation counters
+      const pCount = attLogs.filter(r => r.status === 'present').length;
+      const aCount = attLogs.filter(r => r.status === 'absent').length;
+      const lCount = attLogs.filter(r => r.status === 'leave').length;
+      const totalAtt = attLogs.length;
+      const attRate = totalAtt > 0 ? ((pCount / totalAtt) * 100).toFixed(1) : 0;
 
-        // 📊 Dynamic Bar Chart Alignment based on real cash bounds
-        setFeeBarData([
-          { name: 'Class 10', Collected: totalCash, Target: 24000 },
-          { name: 'Class 11', Collected: 0, Target: 25000 },
-          { name: 'Class 12', Collected: 0, Target: 40000 },
-        ]);
+      setStats({
+        totalStudents: sCount,
+        totalFeesCollected: totalCash,
+        todayAttendancePercentage: parseFloat(attRate)
+      });
 
-        // 📈 Dynamic Timeline Growth Chart
-        setMonthlyTrendData([
-          { month: 'Apr', Registration: 0 },
-          { month: 'May', Registration: sCount > 0 ? sCount - 1 : 0 },
-          { month: 'Jun', Registration: sCount }, 
-        ]);
+      // Strict Color Mapping Array for Pie Chart
+      setAttendancePieData([
+        { name: 'Present', value: pCount, color: '#10B981' }, 
+        { name: 'Absent', value: aCount, color: '#EF4444' },   
+        { name: 'On Leave', value: lCount, color: '#F59E0B' },  
+      ]);
 
-        setLoading(false);
-      } catch (error) {
-        console.error("Dashboard visual core loading failure sync:", error.message);
-        setLoading(false);
-      }
-    };
+      // Dynamic Bar Chart Alignment
+      setFeeBarData([
+        { name: 'Class 10', Collected: totalCash, Target: 24000 },
+        { name: 'Class 11', Collected: 0, Target: 25000 },
+        { name: 'Class 12', Collected: 0, Target: 40000 },
+      ]);
 
-    fetchDashboardAnalytics();
-  }, [schoolId]);
+      // Dynamic Timeline Growth Chart
+      setMonthlyTrendData([
+        { month: 'Apr', Registration: 0 },
+        { month: 'May', Registration: sCount > 0 ? sCount - 1 : 0 },
+        { month: 'Jun', Registration: sCount }, 
+      ]);
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Dashboard visual core loading failure sync:", error.message);
+      setLoading(false);
+    }
+  };
+
+  fetchDashboardAnalytics();
+}, [schoolId]);
 
   return (
     <div className="space-y-6 p-6 bg-slate-50/50 min-h-screen font-sans">

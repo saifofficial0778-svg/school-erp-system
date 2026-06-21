@@ -4,5 +4,6 @@ const feeController=require('../controllers/feeController');
 
 router.get('/',feeController.getAllFees);
 router.post('/',feeController.addFee);
+router.get('/report-page',feeController.getFeeReportPage)
 
 module.exports=router;

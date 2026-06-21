@@ -101,3 +101,18 @@ exports.getFeePieChartData = async (req, res) => {
         });
     }
 };
+exports.getFeeReportPage = async (req, res) => {
+    try {
+        const schoolId = req.query.schoolId || 1;
+        const data = await Fee.fetchFeeReports(schoolId);
+
+        return res.status(200).json({
+            success: true,
+            count: data.length,
+            data: data
+        });
+    } catch (error) {
+        console.error("Fee Report Controller Error:", error.message);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};

@@ -2,10 +2,21 @@ import React, { useState, useEffect } from 'react';
 import API from '../services/api';
 
 const Attendance = () => {
+  // 🟢 HELPER FUNCTION: Aaj ki date ko dynamic YYYY-MM-DD format me compute karna
+  const getTodayDateString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0'); 
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // --- 📦 SYSTEM STATES ---
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' or 'mark'
   const [loading, setLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState('2026-06-19');
+  
+  // ✅ FIXED: Ab selectedDate ka default fallback 'getTodayDateString()' par set ho chuka hai
+  const [selectedDate, setSelectedDate] = useState(getTodayDateString());
   const [schoolId] = useState('1');
 
   // Academic filters for roster
@@ -80,19 +91,29 @@ const Attendance = () => {
     if (!selectedClass) return;
     try {
       setLoading(true);
-      // Phele master registry se bache uthaye
+      // Master registry se saare live register bache uthaye (chahe naye hon ya purane)
       const res = await API.get(`/students?schoolId=${schoolId}`);
+      
+      // Live database me aaj ki date ke marked logs le kar aaye fallback checks ke liye
+      const existingLogsRes = await API.get(`/attendance?schoolId=${schoolId}&date=${selectedDate}`);
+      const liveLogs = existingLogsRes?.data?.success ? (existingLogsRes.data.data || []) : [];
+
       if (res?.data?.success) {
         const baseStudents = res.data.data || [];
         
-        // Unhe state array me map kiya default 'present' status ke sath
-        const rosterSetup = baseStudents.map(student => ({
-          studentId: student.id,
-          fullName: student.fullName || student.full_name,
-          rollNumber: student.rollNumber || student.roll_number,
-          status: 'present', // Default attendance state
-          remarks: ''
-        }));
+        const rosterSetup = baseStudents.map(student => {
+          // Check karo kya is bachhe ki attendance subah lag chuki h?
+          const pastLog = liveLogs.find(log => log.student_id === student.id);
+
+          return {
+            studentId: student.id,
+            fullName: student.fullName || student.full_name,
+            rollNumber: student.rollNumber || student.roll_number,
+            // 🔥 ADVANCED FILTER: Agar pehle se status marked h toh wahi dikhao, varna default 'present' do!
+            status: pastLog ? pastLog.status : 'present', 
+            remarks: pastLog ? (pastLog.remarks || '') : ''
+          };
+        });
         setStudentRoster(rosterSetup);
       }
       setLoading(false);
@@ -106,7 +127,7 @@ const Attendance = () => {
     if (activeTab === 'mark') {
       loadStudentRoster();
     }
-  }, [activeTab, selectedClass]);
+  }, [activeTab, selectedClass, selectedDate]);
 
   // --- 🛠️ CHUNK 3: Handle Status Toggle in UI Sheet ---
   const handleStatusChange = (studentId, newStatus) => {
@@ -120,7 +141,7 @@ const Attendance = () => {
     try {
       setLoading(true);
       
-      // Loop chala kar ek-ek student ka record database me push kiya
+      // Loop chala kar ek-ek student ka record database me push kiya (Ab back-end upsert use karega)
       for (const record of studentRoster) {
         const payload = {
           schoolId: parseInt(schoolId),
@@ -134,10 +155,10 @@ const Attendance = () => {
 
       alert("Master attendance roster successfully committed to DB! 🎉");
       setActiveTab('dashboard');
-      fetchLiveDashboardData(); // Refresh metrics on success commit
+      fetchLiveDashboardData(); 
     } catch (error) {
       console.error("Roster bulk submit error:", error.message);
-      alert(error.response?.data?.message || "Kuch students ki attendance pehle se marked hai bhai!");
+      alert(error.response?.data?.message || "Attendance process mark karne me dikkat aayi bhai!");
       setLoading(false);
     }
   };

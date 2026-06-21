@@ -34,6 +34,19 @@ exports.markAttendance = async (req, res) => {
             });
         }
 
+        const inputDate = new Date(date);
+        const today = new Date();
+        // Time elements ko reset kar rahe hain taaki sirf pure date compare ho
+        today.setHours(0, 0, 0, 0);
+        inputDate.setHours(0, 0, 0, 0);
+
+        if (inputDate > today) {
+            return res.status(400).json({
+                success: false,
+                message: "Bhai chamatkar! Future date (aane wale kal) ki attendance aaj kaise laga sakte ho? ❌📅"
+            });
+        }
+
         // 🛡️ Safe-guard 2: ENUM validation match
         const allowedStatus = ['present', 'absent', 'leave'];
         if (!allowedStatus.includes(status.toLowerCase())) {
