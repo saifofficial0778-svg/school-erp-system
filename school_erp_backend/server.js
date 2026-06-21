@@ -32,7 +32,7 @@ const globalErrorHandler = require('./middlewares/errorController');
 const AppError = require('./utils/AppError');
 
 // 1. Unhandled Routes Catching (Standard '*' use karo)
-app.all('/*', (req, res, next) => {
+app.all(/.*/, (req, res, next) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
