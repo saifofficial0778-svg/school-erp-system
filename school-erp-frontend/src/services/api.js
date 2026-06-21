@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 🏢 BASE URL CONFIGURATION
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api/v1/',
+ baseURL: 'https://school-erp-system-production.up.railway.app/api/v1/',
   headers: {
     'Content-Type': 'application/json',
   },
