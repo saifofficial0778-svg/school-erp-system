@@ -18,7 +18,7 @@ const studentRoutes = require('./routes/studentRoutes');
 const feeRoutes = require('./routes/feeRoutes');
 const attendanceRoutes=require('./routes/attendanceRoutes')
 const classRoutes=require('./routes/classRoutes')
-const authRoutes=require('./routes/authRoutes')
+const authRoutes=require('./routes/authRoutes') 
 
 // Mount Routes
 app.use('/api/v1/students', studentRoutes);
