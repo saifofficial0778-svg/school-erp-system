@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// 🏢 BASE URL CONFIGURATION
+// 🏢 BASE URL CONFIGURATION (Railway Production Hub)
 const API = axios.create({
- baseURL: 'https://school-erp-system-production.up.railway.app/api/v1/',
+  baseURL: 'https://school-erp-system-production.up.railway.app/api/v1/',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,32 +12,42 @@ const API = axios.create({
 // 🛡️ AXIOS REQUEST INTERCEPTOR (SECURITY GUARD)
 // ==========================================
 
-// API.interceptors.request.use() har request ke nikalte hi activate ho jata hai
 API.interceptors.request.use(
   async (config) => {
-   
-    const token=localStorage.getItem('school_token')
-    if(token){
-      config.headers.Authorization=`Bearer ${token}`
+    // 👑 CRITICAL MATCH: AuthContext aur login ke sath key sync rakhi hai ('token')
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-
-    
-    return config; // Updated configuration ke sath request aage nikal jayegi
+    return config; 
   },
   (error) => {
     return Promise.reject(error);
   }
 );
 
+// ==========================================
+// 🔑 AUTHENTICATION SERVICES (NEW SLOT 2 ADDITION)
+// ==========================================
+
+// Handle Executive Admin Login Connection
+export const loginAdmin = async (email, password) => {
+  try {
+    const response = await API.post('/auth/login', { email, password });
+    return response.data;
+  } catch (error) {
+    console.error("Auth API validation failure:", error.message);
+    throw error;
+  }
+};
 
 // ==========================================
-// 💸 APNI PURANI API SERVICES (JO KAL BANAYI THI)
+// 💸 APNI PURANI API SERVICES (100% PRESERVED)
 // ==========================================
 
 // Get All Students List
-export const fetchStudents = async (schoolId) => { // <-- Yahan schoolId accept karo
+export const fetchStudents = async (schoolId) => {
   try {
-    // Agar schoolId hai toh use query param me bhejo, nahi toh normal get
     const response = await API.get(schoolId ? `/students?schoolId=${schoolId}` : '/students');
     return response.data;
   } catch (error) {
