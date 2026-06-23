@@ -11,7 +11,7 @@ import PendingFees from './pages/PendingFees';
 import Attendance from './pages/Attendance';
 import AttendanceReport from './pages/AttendanceReport';
 import StudentForm from './pages/StudentForm';
-import Register from './pages/Register';
+import Register from './pages/Register'; 
 
 // 🛡️ 1. GUEST GUARD: Agar logged in ho, toh login page par dobara nahi jaane dega
 const GuestRoute = ({ children }) => {
