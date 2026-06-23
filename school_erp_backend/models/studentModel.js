@@ -1,5 +1,6 @@
 const pool = require('../config/db');
-const bcrypt = require('bcrypt');
+// studentModel.js line 2
+const bcrypt = require('bcryptjs');  // ✅ 'bcryptjs' - jo package.json mein hai
 
 // Random strong password generator
 const generatePassword = () => {
