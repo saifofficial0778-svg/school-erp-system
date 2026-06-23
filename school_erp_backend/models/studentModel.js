@@ -1,42 +1,78 @@
 const pool = require('../config/db');
+const bcrypt = require('bcrypt');
+
+// Random strong password generator
+const generatePassword = () => {
+    const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const lower = 'abcdefghjkmnpqrstuvwxyz';
+    const digits = '23456789';
+    const special = '@#$!';
+    
+    const rand = (str) => str[Math.floor(Math.random() * str.length)];
+    
+    // Ensure at least one of each type
+    const base = rand(upper) + rand(lower) + rand(digits) + rand(special);
+    const extra = Array.from({ length: 6 }, () => 
+        rand(upper + lower + digits)
+    ).join('');
+    
+    // Shuffle
+    return (base + extra).split('').sort(() => Math.random() - 0.5).join('');
+};
 
 const Student = {
-    // 🎯 Live Dashboard & Registry counter ke liye pure profiles fetch
     fetchAllBaseProfiles: async (schoolId) => {
-        const query = `
-            SELECT id, full_name, admission_number, roll_number, gender, guardian_name 
-            FROM students 
-            WHERE school_id = ?;
-        `;
-        const [rows] = await pool.query(query, [schoolId]);
+        const [rows] = await pool.query(
+            `SELECT id, full_name, admission_number, roll_number, gender, guardian_name 
+             FROM students WHERE school_id = ?`,
+            [schoolId]
+        );
         return rows;
     },
 
-    // 🎯 Master profile registration core data architecture
-    createStudentTransaction: async (schoolId, email, passwordHash, fullName, admissionNumber, rollNumber, whatsAppNumber, dateOfBirth, gender, guardianName) => {
+    createStudentTransaction: async (
+        schoolId, email, fullName, admissionNumber,
+        rollNumber, whatsAppNumber, dateOfBirth, gender, guardianName
+    ) => {
         const connection = await pool.getConnection();
-        
+
         try {
             await connection.beginTransaction();
 
-            // A. Identity User Insert
+            // ✅ Generate password here
+            const plainPassword = generatePassword();
+            const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
+            // A. Insert into users (password col, not password_hash)
             const [userResult] = await connection.query(
-                "INSERT INTO users (school_id, email, password_hash, role) VALUES (?, ?, ?, 'student')",
-                [schoolId, email, passwordHash]
+                `INSERT INTO users (school_id, email, password, role) 
+                 VALUES (?, ?, ?, 'student')`,
+                [schoolId, email, hashedPassword]
             );
             const userId = userResult.insertId;
 
-            // B. Core Profile Details Insert (Exact matching schema positional sequence)
+            // B. Insert into students
             const [studentResult] = await connection.query(
                 `INSERT INTO students 
-                (user_id, school_id, full_name, admission_number, roll_number, whats_app_number, date_of_birth, gender, guardian_name) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [userId, schoolId, fullName, admissionNumber, rollNumber, whatsAppNumber, dateOfBirth, gender, guardianName]
+                 (user_id, school_id, full_name, admission_number, roll_number, 
+                  whats_app_number, date_of_birth, gender, guardian_name) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [userId, schoolId, fullName, admissionNumber, rollNumber,
+                 whatsAppNumber, dateOfBirth, gender, guardianName]
             );
-            const studentId = studentResult.insertId;
 
             await connection.commit();
-            return { id: studentId, fullName, rollNumber, gender };
+
+            // ✅ Plain password return karo (sirf ek baar dikhega)
+            return {
+                id: studentResult.insertId,
+                fullName,
+                rollNumber,
+                credentials: {
+                    email,
+                    password: plainPassword  // frontend ko bhejo popup ke liye
+                }
+            };
 
         } catch (error) {
             await connection.rollback();
