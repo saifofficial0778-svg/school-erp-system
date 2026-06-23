@@ -45,7 +45,7 @@ const Register = () => {
         // Note: Agar api service file ready hai toh direct axios.post bhi use kar sakte ho
         const response = await API.post('/auth/register-school', {
             school_name: formData.schoolName,
-            school_email: formData.email,
+            admin_email: formData.email,
             password: formData.password,
             role: 'admin' // 👑 School creator hamesha master admin hoga database me
         });
