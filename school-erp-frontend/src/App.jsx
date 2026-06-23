@@ -40,7 +40,7 @@ function AppContent() {
 
 
         <Route
-          path="/register"
+          path="/register-school"
           element={
             <GuestRoute>
               <Register />
