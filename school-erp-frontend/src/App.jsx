@@ -67,7 +67,7 @@ function AppContent() {
           }
         >
           {/* Base URL mapping filter */}
-          <Route index element={<Navigate to={token ? "/dashboard" : "/login"} replace />} />
+          <Route index element={<Navigate to={token ? "/dashboard" : "/register-school"} replace />} />
 
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="students" element={<Student />} />
