@@ -46,39 +46,48 @@ exports.login = async (req, res) => {
 // ==================== 2. REGISTER SCHOOL API ====================
 exports.registerSchool = async (req, res) => {
     try {
-        // Screenshot ke mutabik: school_name, admin_email, aur password le rahe hain
+        // Frontend body se ye teen parameters aayenge
         const { school_name, admin_email, password } = req.body;
 
-        // 1. Validation check (Bhai, kuch khali toh nahi choda?)
+        // 🚨 1. AIRTIGHT VALIDATION
         if (!school_name || !admin_email || !password) {
-            return res.status(400).json({ message: "Saari fields bharna compulsory hai, bhai!" });
+            return res.status(400).json({ success: false, message: "Saari fields bharna compulsory hai, bhai!" });
         }
 
-        // 2. Duplicate Check: Kya yeh email pehle se users/schools table me hai?
-        const [existingUsers] = await db.execute('SELECT * FROM schools WHERE admin_email = ?', [admin_email]);
-        
+        // 🚨 2. DUPLICATE EMAIL CHECK (Kyunki users table me email unique hona chahiye)
+        const [existingUsers] = await db.execute('SELECT * FROM users WHERE email = ?', [admin_email]);
         if (existingUsers.length > 0) {
-            return res.status(400).json({ message: "Yeh Email pehle se registered hai, login karo!" });
+            return res.status(400).json({ success: false, message: "Yeh Email pehle se users me registered hai!" });
         }
 
-        // 3. Password Hashing (Wahi technical mixer grinder!)
+        // 🚨 3. BCRYPT PASSWORD HASHING
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        // 4. SQL Query: Existing table (schools) me row insert karna
-        // id auto-increment hai aur created_at default timestamp le lega
-        const query = 'INSERT INTO schools (school_name, admin_email, password) VALUES (?, ?, ?)';
-        await db.execute(query, [school_name, admin_email, hashedPassword]);
+        // 🚨 4. STEP 1: INSERT INTO 'schools' TABLE FIRST
+        const schoolQuery = 'INSERT INTO schools (school_name, admin_email, password) VALUES (?, ?, ?)';
+        const [schoolResult] = await db.execute(schoolQuery, [school_name, admin_email, hashedPassword]);
+        
+        // Dynamic Extraction: Naye bane school ki auto-incremented ID nikalenge
+        // Note: Relational logic ke liye school_id hamesha users table me map honi chahiye
+        const newSchoolId = schoolResult.insertId || 1; 
 
-        // 5. Success Response! Auth UI isko dekh kar redirect login par karega
+        // 🚨 5. STEP 2: INSERT INTO 'users' TABLE (Matching Exact Screenshot Fields!)
+        // Column mapping: school_id, email, password, role, is_active
+        const userQuery = 'INSERT INTO users (school_id, email, password, role, is_active) VALUES (?, ?, ?, ?, ?)';
+        
+        // Param details: newSchoolId (dynamic), admin_email, hashedPassword, role='admin', is_active=1
+        await db.execute(userQuery, [newSchoolId, admin_email, hashedPassword, 'admin', 1]);
+
+        // 🟢 6. SUCCESS RESPONSE
         return res.status(201).json({
             success: true,
-            message: "School Table me kamyabi se register ho gaya! 🎉",
+            message: "School aur Admin accounts dono tables me kamyabi se locked ho gaye! 🎉",
             redirectTo: "/login"
         });
 
     } catch (error) {
-        console.error("MySQL Registration Error:", error);
-        return res.status(500).json({ message: "Server me kuch gadbad hai, registration fail!" });
+        console.error("MySQL Registration Structural Error:", error);
+        return res.status(500).json({ success: false, message: "Server me kuch gadbad hai, registration fail!" });
     }
 };
