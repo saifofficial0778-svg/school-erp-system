@@ -4,7 +4,11 @@ const router=express.Router();
 const authController=require('../controllers/authController');
 const verifyToken=require('../middlewares/authMiddleware')
 
+// Register School Route
+router.post('/register-school', authController.registerSchool);
+
 router.post('/login',authController.login)
+
 
 router.get('/dashboard',verifyToken,(req,res)=>{
    
