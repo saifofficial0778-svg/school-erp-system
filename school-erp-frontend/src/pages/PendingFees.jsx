@@ -13,7 +13,7 @@ const PendingFee = () => {
     const fetchFeeReportData = async () => {
         try {
             setLoading(true);
-            const res = await API.get(`/fees/report-page?schoolId=1`);
+           const res = await API.get('/fees/report-page');
             if (res?.data?.success) {
                 setRawDetails(res.data.data);
                 setFilteredData(res.data.data); // Initial state

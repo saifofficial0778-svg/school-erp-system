@@ -9,7 +9,7 @@ const AttendanceReport = () => {
   const fetchAttendanceReport = async () => {
     try {
       setLoading(true);
-      const res = await API.get(`/attendance/report?schoolId=${schoolId}`);
+      const res = await API.get('/attendance/report');
       if (res?.data?.success) {
         setReportData(res.data.data || []);
       }

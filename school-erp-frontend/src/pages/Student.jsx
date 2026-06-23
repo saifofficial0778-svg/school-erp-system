@@ -13,7 +13,7 @@ const Student = () => {
     const fetchStudents = async () => {
       try {
         setLoading(true);
-        const res = await API.get(`/students?schoolId=${schoolId}`);
+        const res = await API.get('/students');
 
         if (res?.data?.data && Array.isArray(res.data.data)) {
           setStudentList(res.data.data);

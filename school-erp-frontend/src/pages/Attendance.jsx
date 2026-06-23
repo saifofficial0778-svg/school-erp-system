@@ -42,8 +42,8 @@ const Attendance = () => {
   const fetchLiveDashboardData = async () => {
     try {
       setLoading(true);
-      const attendanceRes = await API.get(`/attendance?schoolId=${schoolId}&date=${selectedDate}`);
-      const academicRes = await API.get(`/classes?schoolId=${schoolId}`); 
+      const attendanceRes = await API.get('/attendance');
+      const academicRes = await API.get('/classes'); 
 
       let liveLogs = [];
       let classesData = [];

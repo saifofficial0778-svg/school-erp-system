@@ -24,7 +24,7 @@ exports.login = async (req, res) => {
             userId: user.id,
             email: user.email,
             role: user.role,
-            school_id: user.school_id 
+            school_id: user.schoolId 
         };
 
         const token = jwt.sign(

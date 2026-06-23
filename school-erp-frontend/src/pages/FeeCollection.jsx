@@ -21,7 +21,7 @@ const FeeCollection = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     
-    const sId = params.get('student_id') || '';
+    const sId = params.get('studentId') || '';
     const name = params.get('name') || 'Verified Student';
     
     // String ko clean Float numbers me transform karna mandatory h parse mapping ke liye

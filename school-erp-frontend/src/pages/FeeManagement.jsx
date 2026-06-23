@@ -11,7 +11,7 @@ const FeesManagement = () => {
   const fetchLiveLedger = async () => {
     try {
       setLoading(true);
-      const res = await API.get(`/fees?schoolId=${schoolId}`);
+      const res = await API.get('/fees');
       if (res?.data?.success) {
         setFeeRecords(res.data.data);
       } else {

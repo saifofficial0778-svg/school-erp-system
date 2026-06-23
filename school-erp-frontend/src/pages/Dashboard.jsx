@@ -34,9 +34,9 @@ useEffect(() => {
       const todayStr = `${year}-${month}-${day}`; // 🔥 Ab ye humesha live 'aaj' ki date banayega
 
       // 🎯 Live data fetch matching current date tunnel
-      const studentRes = await API.get(`/students?schoolId=${schoolId}`);
-      const attendanceRes = await API.get(`/attendance?schoolId=${schoolId}&date=${todayStr}`); // 🚀 FIXED: todayStr pass kiya
-      const feesRes = await API.get(`/fees?schoolId=${schoolId}`); 
+      const studentRes = await API.get('/students');
+     const attendanceRes = await API.get(`/attendance?date=${todayStr}`);// 🚀 FIXED: todayStr pass kiya
+      const feesRes = await API.get('/fees'); 
 
       let sCount = studentRes?.data?.success ? (studentRes.data.data?.length || 0) : 0;
       let attLogs = attendanceRes?.data?.success ? (attendanceRes.data.data || []) : [];
