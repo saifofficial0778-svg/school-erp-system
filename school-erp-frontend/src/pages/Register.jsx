@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import API from '../services/api';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -42,9 +43,9 @@ const Register = () => {
         // 🔄 2. API CALL TO BACKEND
         // API connect pipeline jo backend database me directly insert karegi
         // Note: Agar api service file ready hai toh direct axios.post bhi use kar sakte ho
-        const response = await axios.post('/register-school', {
-            schoolName: formData.schoolName,
-            email: formData.email,
+        const response = await API.post('/auth/register-school', {
+            school_name: formData.schoolName,
+            school_email: formData.email,
             password: formData.password,
             role: 'admin' // 👑 School creator hamesha master admin hoga database me
         });
