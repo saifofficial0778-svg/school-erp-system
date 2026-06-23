@@ -1,7 +1,7 @@
 const Student = require('../models/studentModel');
 
 exports.getAllStudents = async (req, res) => {
-    const schoolId = req.query.schoolId || 1; 
+    const schoolId = req.user.schoolId; 
     try {
         const data = await Student.fetchAllBaseProfiles(schoolId); 
         res.status(200).json({ success: true, count: data.length, data: data });

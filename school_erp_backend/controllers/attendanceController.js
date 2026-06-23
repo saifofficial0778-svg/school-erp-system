@@ -4,7 +4,7 @@ const Attendance = require('../models/attendanceModel');
 // 🟢 1. GET ALL ATTENDANCE LOGS FROM LIVE DB
 exports.getAttendanceByDate = async (req, res) => {
     try {
-        const schoolId = req.query.schoolId || 1;
+        const schoolId = req.user.schoolId;
         const date = req.query.date || null;
 
         // DB function triggered

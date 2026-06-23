@@ -4,7 +4,7 @@ const Fee = require('../models/feeModel');
 // 🟢 1. GET ALL FEES FROM DB (With Live Left Join Student Profiles)
 exports.getAllFees = async (req, res) => {
     try {
-        const schoolId = req.query.schoolId || 1;
+        const schoolId = req.user.schoolId;
         const { studentId } = req.query;
 
         // Agar specific single student ki history chahiye

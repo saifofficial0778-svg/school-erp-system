@@ -2,7 +2,7 @@ const ClassModel = require('../models/classModel');
 
 exports.getAllClasses = async (req, res) => {
     try {
-        const schoolId = req.query.schoolId || 1;
+        const schoolId = req.user.schoolId ;
         const data = await ClassModel.fetchAllClasses(schoolId);
         
         return res.status(200).json({
