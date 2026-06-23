@@ -40,7 +40,7 @@ function AppContent() {
 
 
         <Route
-          path="/register-school"
+          path="/register"
           element={
             <GuestRoute>
               <Register />
@@ -67,7 +67,7 @@ function AppContent() {
           }
         >
           {/* Base URL mapping filter */}
-          <Route index element={<Navigate to={token ? "/dashboard" : "/register-school"} replace />} />
+          <Route index element={<Navigate to={token ? "/dashboard" : "/register"} replace />} />
 
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="students" element={<Student />} />
@@ -78,6 +78,7 @@ function AppContent() {
           <Route path="attendance" element={<Attendance />} />
           <Route path="attendance-report" element={<AttendanceReport />} />
           <Route path="student/new" element={<StudentForm />} />
+          
         </Route>
 
         {/* Fallback route mapping wildcard error deflection */}
