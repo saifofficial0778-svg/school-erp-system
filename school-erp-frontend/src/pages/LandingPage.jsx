@@ -266,7 +266,7 @@ const LandingPage = () => {
                             </div>
                             <div className="lp-p-divider"></div>
                             <div className="lp-p-btns">
-                                <button className="lp-p-btn-main" onClick={() => navigate('/login')}>🚀 Free Trial Shuru Karein</button>
+                                <button className="lp-p-btn-main" onClick={() => navigate('/register')}>🚀 Free Trial Shuru Karein</button>
                                 <button className="lp-p-btn-wa">💬 WhatsApp Karein</button>
                             </div>
                         </div>
@@ -294,7 +294,7 @@ const LandingPage = () => {
                     <h2>Aaj Hi <span className="lp-grad">Digital Bano</span><br />Free Mein!</h2>
                     <p>15 din ka free trial — koi credit card nahi chahiye</p>
                     <div className="lp-cta-btns">
-                        <button className="lp-c-btn-main" onClick={() => navigate('/login')}>🚀 Free Trial Shuru Karein</button>
+                        <button className="lp-c-btn-main" onClick={() => navigate('/register')}>🚀 Free Trial Shuru Karein</button>
                         <button className="lp-c-btn-sec">📞 Demo Book Karein</button>
                     </div>
                 </section>
