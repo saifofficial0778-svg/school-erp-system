@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext'; // 🔥 AuthContext import kiya
+import { AuthProvider, useAuth } from './context/AuthContext'; 
 import DashboardLayout from './layouts/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
@@ -12,8 +12,9 @@ import Attendance from './pages/Attendance';
 import AttendanceReport from './pages/AttendanceReport';
 import StudentForm from './pages/StudentForm';
 import Register from './pages/Register'; 
+import LandingPage from './pages/LandingPage';
 
-// 🛡️ 1. GUEST GUARD: Agar logged in ho, toh login page par dobara nahi jaane dega
+// 🛡️ 1. GUEST GUARD: Logged in users ko public matrix se bahar rakhega
 const GuestRoute = ({ children }) => {
   const { token, loading } = useAuth();
 
@@ -22,13 +23,13 @@ const GuestRoute = ({ children }) => {
   return token ? <Navigate to="/dashboard" replace /> : children;
 };
 
-// 🛡️ 2. AUTH GUARD: Agar logged in nahi ho, toh direct login par kick out karega
+// 🛡️ 2. AUTH GUARD: Unauthenticated users ko seedhe landing page par phekega
 const ProtectedRoute = ({ children }) => {
   const { token, loading } = useAuth();
 
   if (loading) return <div className="flex items-center justify-center min-h-screen font-mono text-xs text-slate-400">Verifying security matrix...</div>;
 
-  return token ? children : <Navigate to="/login" replace />;
+  return token ? children : <Navigate to="/" replace />;
 };
 
 function AppContent() {
@@ -37,7 +38,10 @@ function AppContent() {
   return (
     <Router>
       <Routes>
+        {/* 🟢 1. SINGLE ROOT PATH: Pehli baar kholne par sirf aur sirf LandingPage khulega */}
+        <Route path="/" element={<LandingPage />} />
 
+        {/* 📋 2. PUBLIC/GUEST PAGES */}
         <Route
           path="/register"
           element={
@@ -56,13 +60,7 @@ function AppContent() {
           }
         />
 
-        {/* 🟢 Root ("/") ka decision ProtectedRoute se BAHAR rakho */}
-        <Route
-          path="/"
-          element={<Navigate to={token ? "/dashboard" : "/register"} replace />}
-        />
-
-        {/* 🔒 Dashboard layout ab apna alag path lega, "/" nahi */}
+        {/* 🔒 3. PROTECTED LAYOUT SUBSYSTEM */}
         <Route
           element={
             <ProtectedRoute>
@@ -81,13 +79,13 @@ function AppContent() {
           <Route path="/student/new" element={<StudentForm />} />
         </Route>
 
-        <Route path="*" element={<Navigate to={token ? "/dashboard" : "/login"} replace />} />
+        {/* 🚨 4. FALLBACK ROUTE: Kuch galat mila toh user status ke mutabik navigate karo */}
+        <Route path="*" element={<Navigate to={token ? "/dashboard" : "/"} replace />} />
       </Routes>
     </Router>
   );
 }
 
-// 🌍 Pura application AuthProvider ke ghere me wrapper setup
 export default function App() {
   return (
     <AuthProvider>
