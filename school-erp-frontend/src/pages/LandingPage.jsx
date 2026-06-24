@@ -162,7 +162,7 @@ const LandingPage = () => {
                         <h1>School chalao<br /><span className="lp-grad">tension nahi</span></h1>
                         <p>Fees, attendance, students — sab kuch ek jagah manage karo. Manual registers band, digital ERP shuru.</p>
                         <div className="lp-hero-btns">
-                            <button className="lp-h-btn-main" onClick={() => navigate('/login')}>🚀 Free Demo Shuru Karein</button>
+                            <button className="lp-h-btn-main" onClick={() => navigate('/register')}>🚀 Free Demo Shuru Karein</button>
                             <button className="lp-h-btn-sec">▶ Demo Dekhein</button>
                         </div>
                         <div className="lp-hero-stats">
