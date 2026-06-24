@@ -92,10 +92,10 @@ const Attendance = () => {
     try {
       setLoading(true);
       // Master registry se saare live register bache uthaye (chahe naye hon ya purane)
-      const res = await API.get(`/students?schoolId=${schoolId}`);
+      const res = await API.get('/students');
       
       // Live database me aaj ki date ke marked logs le kar aaye fallback checks ke liye
-      const existingLogsRes = await API.get(`/attendance?schoolId=${schoolId}&date=${selectedDate}`);
+      const existingLogsRes = await API.get(`/attendance?date=${selectedDate}`);
       const liveLogs = existingLogsRes?.data?.success ? (existingLogsRes.data.data || []) : [];
 
       if (res?.data?.success) {

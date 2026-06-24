@@ -57,7 +57,7 @@ const FeeCollection = () => {
 
       // Live payload model keys matching your fees table schema exactly
       const payload = {
-        schoolId: parseInt(schoolId),
+  
         studentId: parseInt(studentInfo.id),
         total_bill_amount: studentInfo.totalBill,
         amount_paid: amount, // Logging incremental payment log rows
