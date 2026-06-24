@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
+import { useAuth } from '../context/AuthContext'; 
 
 const Student = () => {
   const navigate = useNavigate();
+  const { user } = useAuth(); 
   const [studentList, setStudentList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const schoolId = '1'; // TODO: auth context se laana baad me
+  
 
   useEffect(() => {
     const fetchStudents = async () => {
