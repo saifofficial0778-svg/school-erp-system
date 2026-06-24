@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import API from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const Attendance = () => {
+   const { user } = useAuth();
   // 🟢 HELPER FUNCTION: Aaj ki date ko dynamic YYYY-MM-DD format me compute karna
   const getTodayDateString = () => {
     const today = new Date();
@@ -17,7 +19,7 @@ const Attendance = () => {
   
   // ✅ FIXED: Ab selectedDate ka default fallback 'getTodayDateString()' par set ho chuka hai
   const [selectedDate, setSelectedDate] = useState(getTodayDateString());
-  const [schoolId] = useState('1');
+  
 
   // Academic filters for roster
   const [classesList, setClassesList] = useState([]);
@@ -42,7 +44,7 @@ const Attendance = () => {
   const fetchLiveDashboardData = async () => {
     try {
       setLoading(true);
-      const attendanceRes = await API.get('/attendance');
+   const attendanceRes = await API.get(`/attendance?date=${selectedDate}`);
       const academicRes = await API.get('/classes'); 
 
       let liveLogs = [];
@@ -83,9 +85,8 @@ const Attendance = () => {
   };
 
   useEffect(() => {
-    fetchLiveDashboardData();
-  }, [selectedDate, schoolId]);
-
+    if (user?.schoolId) fetchLiveDashboardData(); // ✅ user load hone ka wait
+  }, [selectedDate, user?.schoolId]); 
   // --- 🛠️ CHUNK 2: Load Student Roster for Selected Class ---
   const loadStudentRoster = async () => {
     if (!selectedClass) return;
@@ -123,12 +124,11 @@ const Attendance = () => {
     }
   };
 
-  useEffect(() => {
-    if (activeTab === 'mark') {
+ useEffect(() => {
+    if (activeTab === 'mark' && user?.schoolId) {
       loadStudentRoster();
     }
-  }, [activeTab, selectedClass, selectedDate]);
-
+}, [activeTab, selectedClass, selectedDate, user?.schoolId]);
   // --- 🛠️ CHUNK 3: Handle Status Toggle in UI Sheet ---
   const handleStatusChange = (studentId, newStatus) => {
     setStudentRoster(prev => 
@@ -144,7 +144,6 @@ const Attendance = () => {
       // Loop chala kar ek-ek student ka record database me push kiya (Ab back-end upsert use karega)
       for (const record of studentRoster) {
         const payload = {
-          schoolId: parseInt(schoolId),
           studentId: record.studentId,
           date: selectedDate,
           status: record.status,

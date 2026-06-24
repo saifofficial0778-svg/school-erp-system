@@ -24,7 +24,8 @@ exports.getAttendanceByDate = async (req, res) => {
 // 🔴 2. MARK NEW ATTENDANCE WITH SQL DB CONSTRAINT HANDLING
 exports.markAttendance = async (req, res) => {
     try {
-        const { schoolId, studentId, date, status, remarks } = req.body;
+          const schoolId = req.user.schoolId;
+        const {studentId, date, status, remarks } = req.body;
 
         // 🛡️ Safe-guard 1: Check mandatory fields
         if (!schoolId || !studentId || !date || !status) {
@@ -89,7 +90,7 @@ exports.markAttendance = async (req, res) => {
 // 🔵 3. GET PIE CHART DATA FOR ANALYTICS
 exports.getAttendancePieData = async (req, res) => {
     try {
-        const schoolId = req.query.schoolId || 1;
+        const schoolId = req.user.schoolId;
         const data = await Attendance.fetchAnalyticsForPie(schoolId);
 
         return res.status(200).json({
@@ -105,7 +106,7 @@ exports.getAttendancePieData = async (req, res) => {
 // 📊 4. GET MONTHLY ATTENDANCE INSIGHTS REPORT
 exports.getAttendanceReport = async (req, res) => {
     try {
-        const schoolId = req.query.schoolId || 1;
+        const schoolId = req.user.schoolId;
         
         // ✅ FIXED: AttendanceModel ki jagah 'Attendance' variable use kiya jo top par import hai
         const rawRows = await Attendance.fetchMonthlyReport(schoolId);

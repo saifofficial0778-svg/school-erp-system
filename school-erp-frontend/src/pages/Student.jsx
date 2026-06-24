@@ -29,10 +29,8 @@ const Student = () => {
         setLoading(false);
       }
     };
-
-    fetchStudents();
-  }, [schoolId]);
-
+    if (user?.schoolId) fetchStudents(); // ✅ sirf tab fetch karo jab user load ho
+  }, [user?.schoolId]);
   const filteredList = studentList.filter((s) => {
     const name = (s.fullName || s.full_name || '').toLowerCase();
     const adm = (s.admissionNumber || s.admission_number || '').toLowerCase();
@@ -116,9 +114,8 @@ const Student = () => {
                         {student.rollNumber || student.roll_number}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
-                          (student.gender || '').toLowerCase() === 'male' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'
-                        }`}>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${(student.gender || '').toLowerCase() === 'male' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'
+                          }`}>
                           {student.gender || "—"}
                         </span>
                       </td>

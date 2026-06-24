@@ -11,14 +11,15 @@ exports.getAllStudents = async (req, res) => {
 };
 
 exports.createStudent = async (req, res) => {
+     const schoolId = req.user.schoolId;
     // ✅ password nahi chahiye - backend generate karega
     const { 
-        schoolId, email, fullName, admissionNumber, 
+         email, fullName, admissionNumber, 
         rollNumber, whatsAppNumber, dateOfBirth, gender, guardianName 
     } = req.body;
 
     // ✅ password check hatao
-    if (!schoolId || !email || !fullName || !admissionNumber || !rollNumber) {
+    if (!email || !fullName || !admissionNumber || !rollNumber) {
         return res.status(400).json({ 
             success: false, 
             message: "Mandatory fields missing: schoolId, email, fullName, admissionNumber, rollNumber" 

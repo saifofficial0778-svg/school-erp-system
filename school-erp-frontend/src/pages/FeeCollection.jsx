@@ -3,7 +3,7 @@ import API from '../services/api';
 
 const FeeCollection = () => {
   const [loading, setLoading] = useState(false);
-  const [schoolId] = useState('1');
+  
 
   // Unified state layout for structured parsing
   const [studentInfo, setStudentInfo] = useState({

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import API from '../services/api';
+import { useAuth } from '../context/AuthContext'; 
 
 const FeesManagement = () => {
+    const { user } = useAuth(); 
   const [feeRecords, setFeeRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [schoolId] = useState('1'); // Base ERP contextual ID
+ 
 
   // 🔄 Live Database records pull lifecycle handler
   const fetchLiveLedger = async () => {
@@ -25,13 +27,13 @@ const FeesManagement = () => {
   };
 
   useEffect(() => {
-    fetchLiveLedger();
-  }, []);
+    if (user?.schoolId) fetchLiveLedger(); // ✅ user load hone ka wait
+  }, [user?.schoolId]); 
 
   // Safe Dynamic Redirection Parser
   const redirectToCollectionPage = (record) => {
     const params = new URLSearchParams({
-      student_id: record.student_id,
+      studentId: record.student_id,
       name: record.full_name,
       total: record.total_bill_amount,
       paid: record.amount_paid

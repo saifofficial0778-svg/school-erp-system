@@ -129,7 +129,7 @@ const StudentForm = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [credentials, setCredentials] = useState(null); // ✅ Modal state
-  const schoolId = '1';
+
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -146,7 +146,6 @@ const StudentForm = () => {
 
     // ✅ Sirf email bhejo — password backend generate karega
     const payload = {
-      schoolId: parseInt(schoolId),
       email: form.email.trim(),
       fullName: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
       admissionNumber: form.admissionNumber.trim(),

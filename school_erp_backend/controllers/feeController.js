@@ -1,63 +1,49 @@
-// controllers/feeController.js
 const Fee = require('../models/feeModel');
 
-// 🟢 1. GET ALL FEES FROM DB (With Live Left Join Student Profiles)
 exports.getAllFees = async (req, res) => {
     try {
-        const schoolId = req.user.schoolId;
+        const schoolId = req.user.schoolId; // ✅ JWT se
         const { studentId } = req.query;
 
-        // Agar specific single student ki history chahiye
         if (studentId) {
             const studentFees = await Fee.fetchByStudent(schoolId, studentId);
             return res.status(200).json({ success: true, data: studentFees });
         }
 
-        // ✅ FIXED: Ab ye naye model ke sahi function (fetchAllWithStudents) ko hit karega
         const allFees = await Fee.fetchAllWithStudents(schoolId);
-        
-        return res.status(200).json({ 
-            success: true, 
-            count: allFees.length, 
-            data: allFees 
-        });
+        return res.status(200).json({ success: true, count: allFees.length, data: allFees });
     } catch (error) {
-        console.error("Fetch fees controller crash:", error.message);
-        return res.status(500).json({ 
-            success: false, 
-            message: "Database se live records list lane me gadbad hui!" 
-        });
+        return res.status(500).json({ success: false, message: error.message });
     }
 };
 
-// 🔴 2. NAYI FEE ADD KARNA (With Automatic Duplicate Key Updates)
 exports.addFee = async (req, res) => {
     try {
-        console.log("--> Received payload inside fee controller:", req.body);
+        const schoolId = req.user.schoolId; // ✅ JWT se - body se nahi
 
         const { 
-            schoolId, 
-            studentId, 
-            total_bill_amount, 
-            amount_paid, 
-            payment_mode, 
-            status, 
-            transaction_id 
-        } = req.body;
+            studentId, total_bill_amount, amount_paid,
+            payment_mode, status, transaction_id 
+        } = req.body; // ✅ schoolId hataya
 
-        // Validation check strictly matching frontend keys
-        if (!schoolId || !studentId || !amount_paid || !payment_mode || !status) {
+        if (!studentId || !amount_paid || !payment_mode || !status) { // ✅ schoolId check hataya
             return res.status(400).json({ 
                 success: false, 
-                message: "Bhai, mandatory parameters (schoolId, studentId, amount_paid, payment_mode, status) missing hain!" 
+                message: "Mandatory parameters missing: studentId, amount_paid, payment_mode, status" 
+            });
+        }
+
+        if (!schoolId) {
+            return res.status(401).json({ 
+                success: false, 
+                message: "School ID missing from token. Dobara login karo." 
             });
         }
 
         const paymentDate = new Date().toISOString().split('T')[0];
 
-        // Trigger Model with full safety parse parameters
         const newFee = await Fee.recordPayment(
-            parseInt(schoolId), 
+            parseInt(schoolId),  // ✅ JWT wala
             parseInt(studentId), 
             parseFloat(total_bill_amount || amount_paid), 
             parseFloat(amount_paid), 
@@ -67,52 +53,28 @@ exports.addFee = async (req, res) => {
             transaction_id || `TXN_${Date.now()}`
         );
 
-        return res.status(201).json({ 
-            success: true, 
-            message: "Fees chadh gayi boss SQL ledger me! 🎉💳", 
-            data: newFee 
-        });
-
+        return res.status(201).json({ success: true, message: "Fee recorded!", data: newFee });
     } catch (error) {
-        console.error("POST Fee Controller Error:", error.message);
-        return res.status(500).json({ 
-            success: false, 
-            message: error.message || "DB me fee add karne me error aaya!" 
-        });
+        return res.status(500).json({ success: false, message: error.message });
     }
 };
 
-// 📊 3. GET PIE CHART DATA FOR ANALYTICS
 exports.getFeePieChartData = async (req, res) => {
     try {
-        const schoolId = req.query.schoolId || 1;
+        const schoolId = req.user.schoolId; // ✅ JWT se
         const analyticsData = await Fee.fetchFeeStatusPieData(schoolId);
-
-        return res.status(200).json({
-            success: true,
-            message: "Pie chart data ready!",
-            data: analyticsData
-        });
+        return res.status(200).json({ success: true, data: analyticsData });
     } catch (error) {
-        console.error("Pie data extraction failure:", error.message);
-        return res.status(500).json({ 
-            success: false, 
-            message: "Analytics nikalne me error!" 
-        });
+        return res.status(500).json({ success: false, message: error.message });
     }
 };
+
 exports.getFeeReportPage = async (req, res) => {
     try {
-        const schoolId = req.query.schoolId || 1;
+        const schoolId = req.user.schoolId; // ✅ JWT se
         const data = await Fee.fetchFeeReports(schoolId);
-
-        return res.status(200).json({
-            success: true,
-            count: data.length,
-            data: data
-        });
+        return res.status(200).json({ success: true, count: data.length, data: data });
     } catch (error) {
-        console.error("Fee Report Controller Error:", error.message);
         return res.status(500).json({ success: false, message: error.message });
     }
 };
