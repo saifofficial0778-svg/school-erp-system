@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors'); // CORS import kar lo taaki React se dikkat na aaye
-require('dotenv').config();    // Dotenv ko sabse upar initialize karna achha hota hai
-
+require('dotenv').config(); // Dotenv ko sabse upar initialize karna achha hota hai
+// Error Handling Imports
+const globalErrorHandler = require('./middlewares/errorController');
+const AppError = require('./utils/AppError');   
 const app = express();
 
 
@@ -29,9 +31,7 @@ app.use('/api/v1/auth',authRoutes)
 // app.use('/api/v1/report', attendanceRoutes);
 
 
-// Error Handling Imports
-const globalErrorHandler = require('./middlewares/errorController');
-const AppError = require('./utils/AppError');
+
 
 // 1. Unhandled Routes Catching (Standard '*' use karo)
 app.all(/.*/, (req, res, next) => {

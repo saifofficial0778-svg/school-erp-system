@@ -1,16 +1,17 @@
 const Student = require('../models/studentModel');
+const catchAsync=require('../utils/catchAsync')
+const AppError=require('../utils/AppError')
 
-exports.getAllStudents = async (req, res) => {
+
+exports.getAllStudents =  catchAsync(async(req, res) => {
     const schoolId = req.user.schoolId;
-    try {
+    
         const data = await Student.fetchAllBaseProfiles(schoolId);
         res.status(200).json({ success: true, count: data.length, data });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
+   
+});
 
-exports.createStudent = async (req, res) => {
+exports.createStudent =  catchAsync( async (req, res) => {
      const schoolId = req.user.schoolId;
     // ✅ password nahi chahiye - backend generate karega
     const { 
@@ -26,7 +27,7 @@ exports.createStudent = async (req, res) => {
         });
     }
 
-    try {
+    
         const result = await Student.createStudentTransaction(
             // ✅ password nahi bheja - model ka sequence match karo
             schoolId, email, fullName, admissionNumber,
@@ -40,7 +41,42 @@ exports.createStudent = async (req, res) => {
             credentials: result.credentials  // ✅ { email, password } frontend modal ke liye
         });
 
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+    
+});
+
+exports.updateStudent=catchAsync(async(req,res,next)=>{
+    const {studentId}=req.params;
+
+    const{email, fullName, rollNumber, whatsAppNumber, 
+        dateOfBirth, gender, guardianName 
+    } = req.body;
+
+    if (!email || !fullName || !rollNumber) {
+        return next(new AppError("Bhai, Email, Full Name aur Roll Number bharna mandatory hai!", 400));
     }
-};
+
+    const result=await Student.updateStudentTransaction(studentId, email, fullName, rollNumber, whatsAppNumber, dateOfBirth, gender, guardianName
+    );
+
+    res.status(200).json({
+        uccess: true,
+        message: result.message || "Student profile updated successfully!",
+        data: {
+            studentId,
+            fullName,
+            email
+        }
+    });
+});
+
+exports.deleteStudent=catchAsync(async(req,res,next)=>{
+    const {studentId}=req.params
+    const schoolId=req.user.schoolId
+
+    const result =await Student.deleteStudentTransaction(studentId,schoolId);
+
+    res.status(200).json({
+        success: true,
+        message: result.message
+    });
+})
