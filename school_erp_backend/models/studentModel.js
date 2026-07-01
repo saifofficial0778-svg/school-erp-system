@@ -139,7 +139,7 @@ const Student = {
            
            const [studentRow]= await connection.query(
             `SELECT user_id FROM students WHERE id = ? AND school_id = ?`,
-            [schoolId,studentId]
+            [studentId,schoolId]
            );
 
            if(studentRow.length===0){
