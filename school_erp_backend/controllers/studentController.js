@@ -21,10 +21,7 @@ exports.createStudent =  catchAsync( async (req, res) => {
 
     // ✅ password check hatao
     if (!email || !fullName || !admissionNumber || !rollNumber) {
-        return res.status(400).json({ 
-            success: false, 
-            message: "Mandatory fields missing: schoolId, email, fullName, admissionNumber, rollNumber" 
-        });
+        return next(new AppError("Mandatory fields missing: email, fullName, admissionNumber, rollNumber", 400));
     }
 
     
@@ -59,7 +56,7 @@ exports.updateStudent=catchAsync(async(req,res,next)=>{
     );
 
     res.status(200).json({
-        uccess: true,
+        success: true,
         message: result.message || "Student profile updated successfully!",
         data: {
             studentId,
@@ -73,7 +70,7 @@ exports.deleteStudent=catchAsync(async(req,res,next)=>{
     const {studentId}=req.params
     const schoolId=req.user.schoolId
 
-    const result =await Student.deleteStudentTransaction(studentId,schoolId);
+    const result =await Student.deleteStudentTransaction(schoolId,studentId);
 
     res.status(200).json({
         success: true,

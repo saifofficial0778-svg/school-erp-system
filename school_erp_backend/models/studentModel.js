@@ -125,7 +125,7 @@ const Student = {
         } catch (error) {
             await connection.rollback()
 
-            throw new ApError(`Database Error: ${error.message}`, 500);
+            throw new AppError(`Database Error: ${error.message}`, 500);
         } finally {
             connection.release()
         }
@@ -157,7 +157,7 @@ const Student = {
                 `DELETE FROM users WHERE id = ? AND school_id = ?`, 
                 [userId, schoolId]
             );
-
+            await connection.commit()
             return {
                 success:true,
                 message:"Student aur uski login ID dono system se permanent tabah! 🔥"

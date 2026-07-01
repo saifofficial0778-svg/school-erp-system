@@ -37,8 +37,8 @@ const Student = () => {
 
   // ✏️ EDIT HANDLER: StudentForm par redirect karega query param lekar
   const handleEdit = (studentId) => {
-    navigate(`/student/${studentId}`);
-  };
+  navigate(`/student/new?id=${studentId}`); // 🎯 /student/new par hi bhej do
+};
 
   // 🗑️ DELETE HANDLER
   const handleDelete = async (studentId, studentName) => {
