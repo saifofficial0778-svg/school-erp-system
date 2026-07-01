@@ -5,7 +5,7 @@ const verifyToken = require('../middlewares/authMiddleware');
 
 router.get('/',verifyToken,studentController.getAllStudents);
 router.post('/',verifyToken,studentController.createStudent);
-router.put('/',verifyToken,studentController.updateStudent);
-router.delete('/',verifyToken,studentController.deleteStudent)
+router.put('/:studentId',verifyToken,studentController.updateStudent);
+router.delete('/:studentId',verifyToken,studentController.deleteStudent)
 
 module.exports=router;
