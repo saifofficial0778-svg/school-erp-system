@@ -37,7 +37,7 @@ const Student = () => {
 
   // ✏️ EDIT HANDLER: StudentForm par redirect karega query param lekar
   const handleEdit = (studentId) => {
-    navigate(`/student/?id=${studentId}`);
+    navigate(`/student/${studentId}`);
   };
 
   // 🗑️ DELETE HANDLER
