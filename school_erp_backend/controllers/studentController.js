@@ -94,3 +94,20 @@ exports.deleteStudent = catchAsync(async (req, res, next) => {
         message: result.message
     });
 })
+
+exports.getStudentCompleteProfile = catchAsync(async (req, res, next) => {
+    const { studentId } = req.params;
+    const schoolId = req.user.schoolId;
+
+    // Call model with matching sequence
+    const allData = await Student.getStudentCompleteProfile(schoolId, studentId);
+
+    if (!allData) {
+        return next(new AppError('Bhaya, is student ka records nahi mila!', 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        data: allData
+    });
+});

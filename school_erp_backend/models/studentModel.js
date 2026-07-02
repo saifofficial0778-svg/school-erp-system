@@ -186,6 +186,43 @@ const Student = {
         );
         return rows[0];
     },
+
+   getStudentCompleteProfile: async (schoolId, studentId) => {
+    // 1. Fetch Student Base Profile & User Email
+    const [profileRows] = await pool.query(
+        `SELECT s.*, u.email 
+         FROM students s
+         JOIN users u ON s.user_id = u.id
+         WHERE s.id = ? AND s.school_id = ?`,
+        [studentId, schoolId]
+    );
+
+    if (profileRows.length === 0) return null;
+
+    // 2. Fetch Fee Summary (Exact Column Names as per your table)
+    const [feeRows] = await pool.query(
+        `SELECT id, total_amount, paid_amount, due_amount, status, month, year 
+         FROM fees 
+         WHERE student_id = ? AND school_id = ? 
+         ORDER BY year DESC, month DESC`,
+        [studentId, schoolId]
+    );
+
+    // 3. Fetch Attendance Log (Pichle 30 records)
+    const [attendanceRows] = await pool.query(
+        `SELECT date, status, remarks 
+         FROM attendance 
+         WHERE student_id = ? AND school_id = ? 
+         ORDER BY date DESC LIMIT 30`,
+        [studentId, schoolId]
+    );
+
+    return {
+        profile: profileRows[0],
+        fees: feeRows,
+        attendance: attendanceRows
+    };
+}
 };
 
 module.exports = Student;

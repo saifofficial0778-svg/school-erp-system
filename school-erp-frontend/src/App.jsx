@@ -13,6 +13,7 @@ import AttendanceReport from './pages/AttendanceReport';
 import StudentForm from './pages/StudentForm';
 import Register from './pages/Register'; 
 import LandingPage from './pages/LandingPage';
+import StudentView from './pages/StudentView';
 
 // 🛡️ 1. GUEST GUARD: Logged in users ko public matrix se bahar rakhega
 const GuestRoute = ({ children }) => {
@@ -77,6 +78,7 @@ function AppContent() {
           <Route path="/attendance" element={<Attendance />} />
           <Route path="/attendance-report" element={<AttendanceReport />} />
           <Route path="/student/new" element={<StudentForm />} />
+          <Route path="/student/profile-view" element={<StudentView/>}/>
         </Route>
 
         {/* 🚨 4. FALLBACK ROUTE: Kuch galat mila toh user status ke mutabik navigate karo */}
