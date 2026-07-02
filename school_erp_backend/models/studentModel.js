@@ -95,7 +95,7 @@ const Student = {
                 [studentId]
             );
             if (studentRow.length === 0) {
-                throw new AppError('Bhaya, is ID ka koi student hi nahi mila system me.',404)
+                throw new AppError('Bhaya, is ID ka koi student hi nahi mila system me.', 404)
             }
             const userId = studentRow[0].user_id
 
@@ -131,49 +131,61 @@ const Student = {
         }
     },
 
-    deleteStudentTransaction:async(schoolId,studentId)=>{
-        const connection=await pool.getConnection()
+    deleteStudentTransaction: async (schoolId, studentId) => {
+        const connection = await pool.getConnection()
 
-        try{
-           await connection.beginTransaction()
-           
-           const [studentRow]= await connection.query(
-            `SELECT user_id FROM students WHERE id = ? AND school_id = ?`,
-            [studentId,schoolId]
-           );
+        try {
+            await connection.beginTransaction()
 
-           if(studentRow.length===0){
-            throw new AppError('Bhaya, is ID ka koi student tumhare school me nahi mila.', 404)
-           }
-
-           const userId=studentRow[0].user_id
-
-           await connection.query(
-            `DELETE FROM students WHERE id = ? AND school_id = ?`, 
+            const [studentRow] = await connection.query(
+                `SELECT user_id FROM students WHERE id = ? AND school_id = ?`,
                 [studentId, schoolId]
-           )
+            );
 
-           await connection.query(
-                `DELETE FROM users WHERE id = ? AND school_id = ?`, 
+            if (studentRow.length === 0) {
+                throw new AppError('Bhaya, is ID ka koi student tumhare school me nahi mila.', 404)
+            }
+
+            const userId = studentRow[0].user_id
+
+            await connection.query(
+                `DELETE FROM students WHERE id = ? AND school_id = ?`,
+                [studentId, schoolId]
+            )
+
+            await connection.query(
+                `DELETE FROM users WHERE id = ? AND school_id = ?`,
                 [userId, schoolId]
             );
             await connection.commit()
             return {
-                success:true,
-                message:"Student aur uski login ID dono system se permanent tabah! 🔥"
+                success: true,
+                message: "Student aur uski login ID dono system se permanent tabah! 🔥"
             }
-        }catch(error){
+        } catch (error) {
             await connection.rollback()
 
             // Agar error pehle se hi AppError hai (jaise 404 wala), toh use waise hi throw karo
             if (error instanceof AppError) throw error;
-            
+
             // Nahi toh normal database error ko AppError bana kar bhejo
             throw new AppError(`Database Error: ${error.message}`, 500);
-        }finally{
+        } finally {
             connection.release()
         }
-    }
+    },
+
+    // studentModel.js ke Student object ke andar check karo:
+    getStudentById: async (schoolId, studentId) => {
+        const [rows] = await pool.query(
+            `SELECT s.*, u.email 
+         FROM students s
+         JOIN users u ON s.user_id = u.id
+         WHERE s.id = ? AND s.school_id = ?`,
+            [studentId, schoolId]
+        );
+        return rows[0];
+    },
 };
 
 module.exports = Student;

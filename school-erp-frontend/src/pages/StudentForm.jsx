@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom'; // 🎯 useSearchParams add kiya
 import API from '../services/api';
 
 const initialForm = {
   firstName: '',
   lastName: '',
-  email: '',           // ✅ Email field add kiya
+  email: '',           
   admissionNumber: '',
   rollNumber: '',
   whatsAppNumber: '',
@@ -27,7 +27,6 @@ const validateForm = (form) => {
 
   if (form.lastName && !NAME_REGEX.test(form.lastName.trim())) errors.lastName = 'Sirf letters allowed.';
 
-  // ✅ Email validation
   if (!form.email.trim()) errors.email = 'Email required hai.';
   else if (!EMAIL_REGEX.test(form.email.trim())) errors.email = 'Valid email address do.';
 
@@ -55,7 +54,7 @@ const validateForm = (form) => {
   return errors;
 };
 
-// ✅ Credentials Modal Component
+// Credentials Modal Component
 const CredentialsModal = ({ credentials, onClose }) => {
   const [copied, setCopied] = useState(false);
 
@@ -70,15 +69,12 @@ const CredentialsModal = ({ credentials, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-5">
-        
-        {/* Header */}
         <div className="text-center space-y-1">
           <div className="text-4xl">🎉</div>
           <h2 className="text-lg font-bold text-gray-800">Student Enrolled Successfully!</h2>
           <p className="text-xs text-gray-500">Yeh credentials student ko share karo. Password sirf abhi dikhega.</p>
         </div>
 
-        {/* Credentials Box */}
         <div className="bg-slate-50 border border-purple-100 rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-gray-500 uppercase">Email (Login ID)</span>
@@ -95,7 +91,6 @@ const CredentialsModal = ({ credentials, onClose }) => {
           </div>
         </div>
 
-        {/* Warning */}
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 flex gap-2 items-start">
           <span className="text-amber-500 text-sm mt-0.5">⚠️</span>
           <p className="text-xs text-amber-700 font-medium">
@@ -103,18 +98,11 @@ const CredentialsModal = ({ credentials, onClose }) => {
           </p>
         </div>
 
-        {/* Buttons */}
         <div className="flex gap-3">
-          <button
-            onClick={handleCopy}
-            className="flex-1 bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all"
-          >
+          <button onClick={handleCopy} className="flex-1 bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all">
             {copied ? '✅ Copied!' : '📋 Copy Credentials'}
           </button>
-          <button
-            onClick={onClose}
-            className="flex-1 bg-slate-100 hover:bg-slate-200 text-gray-700 font-bold text-sm py-2.5 rounded-xl transition-all"
-          >
+          <button onClick={onClose} className="flex-1 bg-slate-100 hover:bg-slate-200 text-gray-700 font-bold text-sm py-2.5 rounded-xl transition-all">
             Close
           </button>
         </div>
@@ -125,11 +113,53 @@ const CredentialsModal = ({ credentials, onClose }) => {
 
 const StudentForm = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const studentId = searchParams.get('id'); // 🎯 URL se ID nikal li
+
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [credentials, setCredentials] = useState(null); // ✅ Modal state
+  const [credentials, setCredentials] = useState(null);
 
+  // 🔄 FETCH AND AUTO-FILL DATA (Agar edit mode hai)
+  useEffect(() => {
+    const getOldDetails = async () => {
+      if (!studentId) return; // Add mode me yahan se return kar do
+
+      try {
+        setLoading(true);
+        // Base URL compliance check -> hit '/student/:id'
+        const res = await API.get(`/students/${studentId}`);
+        if (res.data?.success) {
+          const s = res.data.data;
+          
+          // Full Name ko First Name aur Last Name me break karo input rules ke liye
+          const nameParts = (s.full_name || '').trim().split(' ');
+          const fName = nameParts[0] || '';
+          const lName = nameParts.slice(1).join(' ') || '';
+
+          setForm({
+            firstName: fName,
+            lastName: lName,
+            email: s.email || '',
+            admissionNumber: s.admission_number || '',
+            rollNumber: s.roll_number || '',
+            whatsAppNumber: s.whats_app_number || '',
+            dateOfBirth: s.date_of_birth ? s.date_of_birth.split('T')[0] : '',
+            gender: (s.gender || 'male').toLowerCase(),
+            guardianName: s.guardian_name || '',
+          });
+        }
+      } catch (error) {
+        console.error("Purani details parse operations failure:", error);
+        alert("Bhai, purani student profile load nahi ho payi!");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getOldDetails();
+  }, [studentId]);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -144,7 +174,6 @@ const StudentForm = () => {
       return;
     }
 
-    // ✅ Sirf email bhejo — password backend generate karega
     const payload = {
       email: form.email.trim(),
       fullName: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
@@ -158,14 +187,26 @@ const StudentForm = () => {
 
     try {
       setLoading(true);
-      const res = await API.post('/students', payload);
       
-      // ✅ Credentials modal dikhao
-      if (res.data?.credentials) {
-        setCredentials(res.data.credentials);
+      if (studentId) {
+        // ✏️ MODE 1: EDIT / UPDATE (PUT Request)
+        const res = await API.put(`/students/${studentId}`, payload);
+        if (res.data.success) {
+          alert("Student profile chaka-chak update ho gayi! 🎉");
+          navigate('/student');
+        }
+      } else {
+        // ＋ MODE 2: NEW ENROLLMENT (POST Request)
+        const res = await API.post('/students', payload);
+        if (res.data?.credentials) {
+          setCredentials(res.data.credentials);
+        } else {
+          alert("Student enroll ho gaya!");
+          navigate('/student');
+        }
       }
     } catch (error) {
-      console.error('Enrollment failed:', error);
+      console.error('Form execution failed:', error);
       alert(error.response?.data?.message || 'Kuch gadbad ho gayi, dobara try karo.');
     } finally {
       setLoading(false);
@@ -174,7 +215,7 @@ const StudentForm = () => {
 
   const handleModalClose = () => {
     setCredentials(null);
-    navigate('/student'); // modal band hone ke baad list pe jao
+    navigate('/student');
   };
 
   const inputClass = (field) =>
@@ -184,16 +225,14 @@ const StudentForm = () => {
 
   return (
     <div className="min-h-screen bg-slate-50/50">
-
-      {/* ✅ Credentials Modal */}
-      {credentials && (
-        <CredentialsModal credentials={credentials} onClose={handleModalClose} />
-      )}
+      {credentials && <CredentialsModal credentials={credentials} onClose={handleModalClose} />}
 
       {/* Header */}
       <div className="bg-purple-900 px-6 py-5 flex items-center gap-4">
         <button onClick={() => navigate('/student')} className="text-white text-xl">←</button>
-        <h1 className="text-xl font-bold text-white tracking-tight">Student Enrollment</h1>
+        <h1 className="text-xl font-bold text-white tracking-tight">
+          {studentId ? 'Edit Student Profile' : 'Student Enrollment'}
+        </h1>
       </div>
 
       <div className="p-6">
@@ -203,8 +242,12 @@ const StudentForm = () => {
             <div className="flex items-start gap-3">
               <div className="bg-purple-50 text-purple-700 rounded-full w-9 h-9 flex items-center justify-center text-lg shrink-0">👤</div>
               <div>
-                <h2 className="text-lg font-bold text-gray-800">Student Admission</h2>
-                <p className="text-xs text-gray-500 mt-0.5">Fill in the required details. A login account will be created automatically.</p>
+                <h2 className="text-lg font-bold text-gray-800">
+                  {studentId ? 'Update Registration Log' : 'Student Admission'}
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {studentId ? 'Modify profile data fields safely.' : 'Fill in the required details. A login account will be created automatically.'}
+                </p>
               </div>
             </div>
 
@@ -229,9 +272,8 @@ const StudentForm = () => {
                   {errors.lastName && <p className="text-xs text-red-500 mt-1">{errors.lastName}</p>}
                 </div>
 
-                {/* ✅ Email Field - naya add kiya */}
                 <div className="md:col-span-2">
-                  <label className="text-xs font-bold text-gray-600 block mb-1.5">Student Email * <span className="text-purple-600">(Login ID banega)</span></label>
+                  <label className="text-xs font-bold text-gray-600 block mb-1.5">Student Email * <span className="text-purple-600">(Login ID)</span></label>
                   <input type="email" placeholder="e.g. student@gmail.com" value={form.email}
                     onChange={handleChange('email')} className={inputClass('email')} />
                   {errors.email
@@ -264,7 +306,7 @@ const StudentForm = () => {
                   </div>
                   {errors.whatsAppNumber
                     ? <p className="text-xs text-red-500 mt-1">{errors.whatsAppNumber}</p>
-                    : <p className="text-xs text-gray-400 mt-1">Used for WhatsApp alerts (fees, attendance & results).</p>}
+                    : <p className="text-xs text-gray-400 mt-1">Used for WhatsApp alerts.</p>}
                 </div>
 
                 <div>
@@ -301,9 +343,14 @@ const StudentForm = () => {
               </div>
             </div>
 
+            {/* Dynamic Button Label */}
             <button type="submit" disabled={loading}
               className="w-full bg-purple-700 hover:bg-purple-800 disabled:bg-purple-400 text-white font-bold text-sm px-6 py-3.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
-              <span>{loading ? '⌛ Enrolling Student...' : '👤 Enroll Student'}</span>
+              <span>
+                {loading 
+                  ? (studentId ? '⌛ Saving Profile...' : '⌛ Enrolling Student...') 
+                  : (studentId ? '💾 Save Profile Changes' : '👤 Enroll Student')}
+              </span>
             </button>
 
           </form>

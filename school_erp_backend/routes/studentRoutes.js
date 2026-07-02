@@ -4,6 +4,7 @@ const studentController=require('../controllers/studentController')
 const verifyToken = require('../middlewares/authMiddleware');
 
 router.get('/',verifyToken,studentController.getAllStudents);
+router.get('/:studentId', verifyToken, studentController.getStudentById);
 router.post('/',verifyToken,studentController.createStudent);
 router.put('/:studentId',verifyToken,studentController.updateStudent);
 router.delete('/:studentId',verifyToken,studentController.deleteStudent)
