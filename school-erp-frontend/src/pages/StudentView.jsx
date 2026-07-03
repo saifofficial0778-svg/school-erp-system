@@ -6,7 +6,7 @@ const StudentView = () => {
   const [searchParams] = useSearchParams();
   const studentId = searchParams.get('id');
   const navigate = useNavigate();
-  
+
   const [data, setData] = useState({ profile: null, fees: [], attendance: [] });
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +37,7 @@ const StudentView = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
+
         {/* Card 1: Details */}
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
           <h2 className="text-lg font-bold text-gray-800 border-b pb-2 mb-4">👤 Personal Details</h2>
@@ -53,22 +53,27 @@ const StudentView = () => {
         </div>
 
         {/* Card 2: Fee History (Updated Columns) */}
+        {/* Card 2: Fee History (Updated exact DB columns mapping) */}
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
           <h2 className="text-lg font-bold text-gray-800 border-b pb-2 mb-4">💰 Fee Status</h2>
           {data.fees.length === 0 ? <p className="text-sm text-gray-400">No fee record found.</p> : (
             <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
               {data.fees.map((fee) => (
-                <div key={fee.id} className="border-b pb-2 text-sm flex flex-col gap-1">
+                <div key={fee.id} className="border-b pb-2 text-sm flex flex-col gap-1.5">
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-700">{fee.month} / {fee.year}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${fee.status === 'paid' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                      {fee.status.toUpperCase()}
+                    <span className="font-semibold text-gray-500 text-xs">TXN: {fee.transaction_id || 'N/A'}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${(fee.status || '').toLowerCase() === 'paid' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+                      }`}>
+                      {fee.status || 'Pending'}
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 text-xs text-gray-500">
-                    <div>Total: ₹{fee.total_amount}</div>
-                    <div>Paid: ₹{fee.paid_amount}</div>
-                    <div className="text-red-500 font-medium">Due: ₹{fee.due_amount}</div>
+                  <div className="grid grid-cols-2 text-xs text-gray-600 font-medium">
+                    <div>Total Bill: ₹{fee.total_bill_amount || 0}</div>
+                    <div>Paid: ₹{fee.amount_paid || 0}</div>
+                  </div>
+                  <div className="text-[11px] text-gray-400 flex justify-between">
+                    <span>Mode: <span className="capitalize">{fee.payment_mode || '—'}</span></span>
+                    <span>Date: {fee.payment_date ? new Date(fee.payment_date).toLocaleDateString('en-IN') : '—'}</span>
                   </div>
                 </div>
               ))}

@@ -199,12 +199,12 @@ const Student = {
 
     if (profileRows.length === 0) return null;
 
-    // 2. Fetch Fee Summary (Exact Column Names as per your table)
+    // 2. Fetch Fee Summary (Exact Column Names matching your image)
     const [feeRows] = await pool.query(
-        `SELECT id, total_amount, paid_amount, due_amount, status, month, year 
+        `SELECT id, total_bill_amount, amount_paid, payment_date, payment_mode, status, transaction_id
          FROM fees 
          WHERE student_id = ? AND school_id = ? 
-         ORDER BY year DESC, month DESC`,
+         ORDER BY id DESC`, // Month/Year nahi hai isliye ID desc se latest fees upar aayegi
         [studentId, schoolId]
     );
 
