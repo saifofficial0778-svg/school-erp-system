@@ -13,7 +13,7 @@ const StudentView = () => {
   useEffect(() => {
     const fetchFullData = async () => {
       try {
-        const res = await API.get(`/student/${studentId}/profile-view`);
+        const res = await API.get(`/students/${studentId}/profile-view`);
         if (res.data.success) {
           setData(res.data.data);
         }
