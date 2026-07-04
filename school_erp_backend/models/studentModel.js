@@ -187,42 +187,53 @@ const Student = {
         return rows[0];
     },
 
-   getStudentCompleteProfile: async (schoolId, studentId) => {
-    // 1. Fetch Student Base Profile & User Email
-    const [profileRows] = await pool.query(
-        `SELECT s.*, u.email 
+    getStudentCompleteProfile: async (schoolId, studentId) => {
+        // 1. Fetch Student Base Profile & User Email
+        const [profileRows] = await pool.query(
+            `SELECT s.*, u.email 
          FROM students s
          JOIN users u ON s.user_id = u.id
          WHERE s.id = ? AND s.school_id = ?`,
-        [studentId, schoolId]
-    );
+            [studentId, schoolId]
+        );
 
-    if (profileRows.length === 0) return null;
+        if (profileRows.length === 0) return null;
 
-    // 2. Fetch Fee Summary (Exact Column Names matching your image)
-    const [feeRows] = await pool.query(
-        `SELECT id, total_bill_amount, amount_paid, payment_date, payment_mode, status, transaction_id
-         FROM fees 
-         WHERE student_id = ? AND school_id = ? 
-         ORDER BY id DESC`, // Month/Year nahi hai isliye ID desc se latest fees upar aayegi
-        [studentId, schoolId]
-    );
+        // 2. Fetch Fee Summary (Exact Column Names matching your image)
+        // Fee summary (total, paid, due)
+const [feeSummary] = await pool.query(
+    `SELECT total_fee, total_paid, total_due, status, 
+            last_payment_date, last_payment_mode
+     FROM fee_summary
+     WHERE student_id = ? AND school_id = ?`,
+    [studentId, schoolId]
+);
 
-    // 3. Fetch Attendance Log (Pichle 30 records)
-    const [attendanceRows] = await pool.query(
-        `SELECT date, status, remarks 
+// Fee payment history logs
+const [feeLogs] = await pool.query(
+    `SELECT id, amount_paid, payment_date, 
+            payment_mode, transaction_id, remarks
+     FROM fee_logs
+     WHERE student_id = ? AND school_id = ?
+     ORDER BY payment_date DESC`,
+    [studentId, schoolId]
+);
+
+        // 3. Fetch Attendance Log (Pichle 30 records)
+        const [attendanceRows] = await pool.query(
+            `SELECT date, status, remarks 
          FROM attendance 
          WHERE student_id = ? AND school_id = ? 
          ORDER BY date DESC LIMIT 30`,
-        [studentId, schoolId]
-    );
+            [studentId, schoolId]
+        );
 
-    return {
-        profile: profileRows[0],
-        fees: feeRows,
-        attendance: attendanceRows
-    };
-}
+        return {
+            profile: profileRows[0],
+            fees: feeRows,
+            attendance: attendanceRows
+        };
+    }
 };
 
 module.exports = Student;

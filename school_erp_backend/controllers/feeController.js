@@ -6,7 +6,7 @@ exports.getAllFees = async (req, res) => {
         const { studentId } = req.query;
 
         if (studentId) {
-            const studentFees = await Fee.fetchByStudent(schoolId, studentId);
+           const studentFees = await Fee.fetchStudentFeeDetails(schoolId, studentId);
             return res.status(200).json({ success: true, data: studentFees });
         }
 
@@ -21,36 +21,34 @@ exports.addFee = async (req, res) => {
     try {
         const schoolId = req.user.schoolId; // ✅ JWT se - body se nahi
 
-        const { 
-            studentId, total_bill_amount, amount_paid,
-            payment_mode, status, transaction_id 
+        const {
+            studentId, amount_paid,
+            payment_mode, transaction_id
         } = req.body; // ✅ schoolId hataya
 
-        if (!studentId || !amount_paid || !payment_mode || !status) { // ✅ schoolId check hataya
-            return res.status(400).json({ 
-                success: false, 
-                message: "Mandatory parameters missing: studentId, amount_paid, payment_mode, status" 
+        if (!studentId || !amount_paid || !payment_mode) { // ✅ schoolId check hataya
+            return res.status(400).json({
+                success: false,
+                message: "Mandatory parameters missing: studentId, amount_paid, payment_mode, status"
             });
         }
 
         if (!schoolId) {
-            return res.status(401).json({ 
-                success: false, 
-                message: "School ID missing from token. Dobara login karo." 
+            return res.status(401).json({
+                success: false,
+                message: "School ID missing from token. Dobara login karo."
             });
         }
 
-        const paymentDate = new Date().toISOString().split('T')[0];
+
 
         const newFee = await Fee.recordPayment(
-            parseInt(schoolId),  // ✅ JWT wala
-            parseInt(studentId), 
-            parseFloat(total_bill_amount || amount_paid), 
-            parseFloat(amount_paid), 
-            paymentDate, 
-            payment_mode.toLowerCase(), 
-            status.toLowerCase(), 
-            transaction_id || `TXN_${Date.now()}`
+            parseInt(schoolId),
+            parseInt(studentId),
+            parseFloat(amount_paid),
+            payment_mode.toLowerCase(),
+            transaction_id || `TXN_${Date.now()}`,
+            req.body.remarks || null
         );
 
         return res.status(201).json({ success: true, message: "Fee recorded!", data: newFee });

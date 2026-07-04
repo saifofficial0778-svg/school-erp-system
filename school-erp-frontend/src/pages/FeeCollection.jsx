@@ -3,7 +3,7 @@ import API from '../services/api';
 
 const FeeCollection = () => {
   const [loading, setLoading] = useState(false);
-  
+
 
   // Unified state layout for structured parsing
   const [studentInfo, setStudentInfo] = useState({
@@ -20,10 +20,10 @@ const FeeCollection = () => {
   // 🔥 SAFE PARAMETERS EXTRACTION LIFECYCLE
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    
+
     const sId = params.get('studentId') || '';
     const name = params.get('name') || 'Verified Student';
-    
+
     // String ko clean Float numbers me transform karna mandatory h parse mapping ke liye
     const total = parseFloat(params.get('total')) || 0;
     const paid = parseFloat(params.get('paid')) || 0;
@@ -57,19 +57,15 @@ const FeeCollection = () => {
 
       // Live payload model keys matching your fees table schema exactly
       const payload = {
-  
         studentId: parseInt(studentInfo.id),
-        total_bill_amount: studentInfo.totalBill,
-        amount_paid: amount, // Logging incremental payment log rows
-        payment_date: new Date().toISOString().split('T')[0],
+        amount_paid: amount,
         payment_mode: paymentMode,
-        status: calculatedStatus,
         transaction_id: `TXN_${Date.now()}`
       };
 
       console.log("Committing robust audit entry to database node...", payload);
       const res = await API.post('/fees', payload);
-      
+
       if (res?.data?.success) {
         alert("Fees transaction committed flawlessly! Ledger updated. 💳🎉");
         window.location.href = '/fee-management'; // Return to index page desk
@@ -86,11 +82,11 @@ const FeeCollection = () => {
 
   return (
     <div className="space-y-6 p-6 bg-slate-50/50 min-h-screen font-sans">
-      
+
       {/* Top Header Back links navigation routing alignment */}
       <div className="flex items-center space-x-2 text-xs font-bold border-b border-gray-200 pb-3">
-        <button 
-          onClick={() => window.location.href = '/fee-management'} 
+        <button
+          onClick={() => window.location.href = '/fee-management'}
           className="text-gray-400 hover:text-slate-800 transition-all cursor-pointer"
         >
           ⬅️ Back to Fee Ledger
@@ -101,7 +97,7 @@ const FeeCollection = () => {
 
       {/* 📊 PREMIUM ANALYTICS LEDGER BLOCKS (No More NaN Strings!) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        
+
         {/* Card 1: Total Fees */}
         <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-slate-400"></div>
@@ -141,13 +137,13 @@ const FeeCollection = () => {
             💳 Cashier Desk Context : {studentInfo.name || "Loading Name..."}
           </h3>
         </div>
-        
+
         <form onSubmit={handleTransactionSubmit} className="p-6 space-y-5 text-xs">
-          
+
           {/* Amount Input */}
           <div>
             <label className="block text-gray-600 font-bold mb-1.5">Collection Amount (INR) *</label>
-            <input 
+            <input
               type="number"
               step="any"
               placeholder="Enter numerical digits value e.g. 3500"
