@@ -201,23 +201,23 @@ const Student = {
 
         // 2. Fetch Fee Summary (Exact Column Names matching your image)
         // Fee summary (total, paid, due)
-const [feeSummary] = await pool.query(
-    `SELECT total_fee, total_paid, total_due, status, 
+        const [feeSummary] = await pool.query(
+            `SELECT total_fee, total_paid, total_due, status, 
             last_payment_date, last_payment_mode
      FROM fee_summary
      WHERE student_id = ? AND school_id = ?`,
-    [studentId, schoolId]
-);
+            [studentId, schoolId]
+        );
 
-// Fee payment history logs
-const [feeLogs] = await pool.query(
-    `SELECT id, amount_paid, payment_date, 
+        // Fee payment history logs
+        const [feeLogs] = await pool.query(
+            `SELECT id, amount_paid, payment_date, 
             payment_mode, transaction_id, remarks
      FROM fee_logs
      WHERE student_id = ? AND school_id = ?
      ORDER BY payment_date DESC`,
-    [studentId, schoolId]
-);
+            [studentId, schoolId]
+        );
 
         // 3. Fetch Attendance Log (Pichle 30 records)
         const [attendanceRows] = await pool.query(
@@ -230,7 +230,8 @@ const [feeLogs] = await pool.query(
 
         return {
             profile: profileRows[0],
-            fees: feeRows,
+            feeSummary: feeSummary[0] || null,  // ✅ sahi naam
+            feeLogs: feeLogs,                    // ✅ sahi naam
             attendance: attendanceRows
         };
     }

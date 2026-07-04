@@ -7,7 +7,7 @@ const StudentView = () => {
   const studentId = searchParams.get('id');
   const navigate = useNavigate();
 
-  const [data, setData] = useState({ profile: null, fees: [], attendance: [] });
+  const [data, setData] = useState({ profile: null, feeSummary: null, feeLogs: [], attendance: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,7 +19,7 @@ const StudentView = () => {
         }
       } catch (err) {
         console.error("Dashboard data load fail:", err);
-      } {
+      } finally {
         setLoading(false);
       }
     };
@@ -52,35 +52,50 @@ const StudentView = () => {
           </div>
         </div>
 
-        {/* Card 2: Fee History (Updated Columns) */}
-        {/* Card 2: Fee History (Updated exact DB columns mapping) */}
+        {/* Card 2: Fee Status */}
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
           <h2 className="text-lg font-bold text-gray-800 border-b pb-2 mb-4">💰 Fee Status</h2>
-          {data.fees.length === 0 ? <p className="text-sm text-gray-400">No fee record found.</p> : (
-            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-              {data.fees.map((fee) => (
-                <div key={fee.id} className="border-b pb-2 text-sm flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-500 text-xs">TXN: {fee.transaction_id || 'N/A'}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${(fee.status || '').toLowerCase() === 'paid' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
-                      }`}>
-                      {fee.status || 'Pending'}
-                    </span>
+
+          {/* Summary row */}
+          {data.feeSummary ? (
+            <div className="grid grid-cols-3 gap-2 mb-4 text-center text-xs">
+              <div className="bg-slate-50 p-2 rounded-lg">
+                <p className="text-gray-400">Total Fee</p>
+                <p className="font-bold text-gray-800">₹{data.feeSummary.total_fee || 0}</p>
+              </div>
+              <div className="bg-green-50 p-2 rounded-lg">
+                <p className="text-gray-400">Paid</p>
+                <p className="font-bold text-green-600">₹{data.feeSummary.total_paid || 0}</p>
+              </div>
+              <div className="bg-red-50 p-2 rounded-lg">
+                <p className="text-gray-400">Due</p>
+                <p className="font-bold text-red-600">₹{data.feeSummary.total_due || 0}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 mb-4">No fee summary found.</p>
+          )}
+
+          {/* Payment logs */}
+          {data.feeLogs.length === 0 ? (
+            <p className="text-sm text-gray-400">No payment history yet.</p>
+          ) : (
+            <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+              {data.feeLogs.map((log) => (
+                <div key={log.id} className="border-b pb-2 text-xs flex flex-col gap-1">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">TXN: {log.transaction_id || 'N/A'}</span>
+                    <span className="font-bold text-green-600">₹{log.amount_paid}</span>
                   </div>
-                  <div className="grid grid-cols-2 text-xs text-gray-600 font-medium">
-                    <div>Total Bill: ₹{fee.total_bill_amount || 0}</div>
-                    <div>Paid: ₹{fee.amount_paid || 0}</div>
-                  </div>
-                  <div className="text-[11px] text-gray-400 flex justify-between">
-                    <span>Mode: <span className="capitalize">{fee.payment_mode || '—'}</span></span>
-                    <span>Date: {fee.payment_date ? new Date(fee.payment_date).toLocaleDateString('en-IN') : '—'}</span>
+                  <div className="flex justify-between text-gray-400">
+                    <span className="capitalize">{log.payment_mode}</span>
+                    <span>{log.payment_date ? new Date(log.payment_date).toLocaleDateString('en-IN') : '—'}</span>
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
-
         {/* Card 3: Attendance */}
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
           <h2 className="text-lg font-bold text-gray-800 border-b pb-2 mb-4">📅 Attendance History</h2>
