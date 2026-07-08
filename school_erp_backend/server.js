@@ -22,7 +22,7 @@ const attendanceRoutes=require('./routes/attendanceRoutes')
 const classRoutes=require('./routes/classRoutes')
 const authRoutes=require('./routes/authRoutes') 
 const teacherRoutes=require('./routes/teacherRoutes')
-const classRoutes=require('./routes/classRoutes')
+// const classRoutes=require('./routes/classRoutes')
 
 // Mount Routes
 app.use('/api/v1/students', studentRoutes);
@@ -31,7 +31,7 @@ app.use('/api/v1/attendance',attendanceRoutes);
 app.use('/api/v1/classes', classRoutes);
 app.use('/api/v1/auth',authRoutes)
 app.use('/api/v1/teachers',teacherRoutes)
-app.use('/api/v1/classes',teacherRoutes)
+
 // app.use('/api/v1/report', attendanceRoutes);
 
 
