@@ -5,15 +5,16 @@ const AppError = require('../utils/AppError');     // 🔥 Custom operational ex
 
 // 1. 🏫 CREATE NEW CLASS CLUSTER
 exports.addClass = catchAsync(async (req, res, next) => {
-    const { class_name, section, teacher_id } = req.body;
+    // 🚨 Yahan monthly_fee nikalna zaroori hai!
+    const { class_name, section, teacher_id, monthly_fee } = req.body;
     const school_id = req.user.schoolId;
 
-    // Validation check using core operational AppError wrapper
     if (!class_name || !section) {
-        return next(new AppError("Bhai, Class Name aur Section details fill karna mandatory hai!", 400));
+        return next(new AppError("Bhai, Class Name aur Section mandatory hai!", 400));
     }
 
-    const classId = await ClassModel.createClass(school_id, class_name, section, teacher_id);
+    // 🚀 Model me pass karte waqt monthly_fee ko pass karo (jo frontend bhej raha hai)
+    const classId = await ClassModel.createClass(school_id, class_name, section, teacher_id, monthly_fee || 0);
 
     res.status(201).json({
         success: true,
@@ -21,7 +22,6 @@ exports.addClass = catchAsync(async (req, res, next) => {
         classId
     });
 });
-
 // 2. 📊 GET ALL CLASSES & TEACHERS LOGS (Dropdown matrices selector)
 exports.getClassDropdownData = catchAsync(async (req, res, next) => {
     const school_id = req.user.schoolId;
