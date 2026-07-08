@@ -15,3 +15,5 @@ const generatePassword = () => {
     // Shuffle
     return (base + extra).split('').sort(() => Math.random() - 0.5).join('');
 };
+
+module.exports=generatePassword;
