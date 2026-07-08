@@ -17,6 +17,9 @@ import StudentView from './pages/StudentView';
 import TeacherForm from './pages/TeacherForm';
 import Teacher from './pages/Teacher';
 import TeacherView from './pages/TeacherView';
+import ClassManagement from './pages/ClassManagement';
+
+
 // 🛡️ 1. GUEST GUARD: Logged in users ko public matrix se bahar rakhega
 const GuestRoute = ({ children }) => {
   const { token, loading } = useAuth();
@@ -84,6 +87,7 @@ function AppContent() {
           <Route path="/teacher" element={<Teacher />} />
           <Route path="/teacher/new" element={<TeacherForm />} />
           <Route path="/teacher/profile-view" element={<TeacherView />} />
+          <Route path="/classes" element={<ClassManagement />} />
         </Route>
 
         {/* 🚨 4. FALLBACK ROUTE: Kuch galat mila toh user status ke mutabik navigate karo */}

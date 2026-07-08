@@ -11,6 +11,7 @@ const Sidebar = ({ closeSidebar }) => {
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'Students', path: '/students' },
     { name: 'Teachers', path: '/teacher' },
+    { name: 'Class Management', path: '/classes' },
     { name: 'Fee Management', path: '/fees' },
     { name: "Pending Fee", path: '/pending-fees' },
     { name: "Attendance", path: '/attendance' },
