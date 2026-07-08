@@ -44,7 +44,7 @@ const ClassManagement = () => {
   const handleCreateClass = async (e) => {
     e.preventDefault();
     try {
-      const res = await API.post('/classes/add', newClass);
+      const res = await API.post('/classes/create', newClass);
       alert(res.data.message);
       setNewClass({ class_name: '', section: '', teacher_id: '', monthly_fee: '' });
       fetchData();
