@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext'; 
+import { AuthProvider, useAuth } from './context/AuthContext';
 import DashboardLayout from './layouts/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
@@ -11,9 +11,11 @@ import PendingFees from './pages/PendingFees';
 import Attendance from './pages/Attendance';
 import AttendanceReport from './pages/AttendanceReport';
 import StudentForm from './pages/StudentForm';
-import Register from './pages/Register'; 
+import Register from './pages/Register';
 import LandingPage from './pages/LandingPage';
 import StudentView from './pages/StudentView';
+import Teacher from '../../school_erp_backend/models/teacherModel';
+import TeacherForm from './pages/TeacherForm';
 
 // 🛡️ 1. GUEST GUARD: Logged in users ko public matrix se bahar rakhega
 const GuestRoute = ({ children }) => {
@@ -78,7 +80,10 @@ function AppContent() {
           <Route path="/attendance" element={<Attendance />} />
           <Route path="/attendance-report" element={<AttendanceReport />} />
           <Route path="/student/new" element={<StudentForm />} />
-          <Route path="/student/profile-view" element={<StudentView/>}/>
+          <Route path="/student/profile-view" element={<StudentView />} />
+          <Route path="/teacher" element={<Teacher />} />
+          <Route path="/teacher/new" element={<TeacherForm />} />
+          <Route path="/teacher/profile-view" element={<TeacherView />} />
         </Route>
 
         {/* 🚨 4. FALLBACK ROUTE: Kuch galat mila toh user status ke mutabik navigate karo */}

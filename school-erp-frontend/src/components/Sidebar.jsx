@@ -10,6 +10,7 @@ const Sidebar = ({ closeSidebar }) => {
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'Students', path: '/students' },
+    { name: 'Teachers', path: '/teacher' },
     { name: 'Fee Management', path: '/fees' },
     { name: "Pending Fee", path: '/pending-fees' },
     { name: "Attendance", path: '/attendance' },

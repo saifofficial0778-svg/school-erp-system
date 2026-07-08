@@ -2,25 +2,9 @@ const pool = require('../config/db');
 // studentModel.js line 2
 const bcrypt = require('bcryptjs');  // ✅ 'bcryptjs' - jo package.json mein hai
 const AppError = require('../utils/AppError');
-
 // Random strong password generator
-const generatePassword = () => {
-    const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-    const lower = 'abcdefghjkmnpqrstuvwxyz';
-    const digits = '23456789';
-    const special = '@#$!';
+const generatePassword = require('../utils/generatePassword')
 
-    const rand = (str) => str[Math.floor(Math.random() * str.length)];
-
-    // Ensure at least one of each type
-    const base = rand(upper) + rand(lower) + rand(digits) + rand(special);
-    const extra = Array.from({ length: 6 }, () =>
-        rand(upper + lower + digits)
-    ).join('');
-
-    // Shuffle
-    return (base + extra).split('').sort(() => Math.random() - 0.5).join('');
-};
 
 const Student = {
     fetchAllBaseProfiles: async (schoolId) => {
