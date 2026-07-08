@@ -189,7 +189,7 @@ const ClassManagement = () => {
                                             <h3 className="text-xl font-bold text-purple-900">{c.class_name} <span className="text-sm font-mono text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md">Sec {c.section}</span></h3>
                                             <p className="text-xs text-gray-500 mt-1">🧑‍🏫 {c.teacher_name || 'No Teacher Assigned'}</p>
                                         </div>
-                                                // Card Section UI component ke andar:
+                                               
                                         <span className="text-xs font-bold text-emerald-400 bg-emerald-950/50 border border-emerald-900/40 px-2.5 py-1 rounded-full font-mono">
                                             {/* Dono fallback keys pass kar do taaki blank na dikhe */}
                                             ₹{c.monthly_fee || c.assigned_monthly_fee || 0}/mo
