@@ -3,11 +3,16 @@ const router = express.Router();
 const classController = require('../controllers/classController');
 const verifyToken = require('../middlewares/authMiddleware');
 
-router.use(verifyToken); // Pure routes protected hain
+// 🛡️ Pure routes token se protected hain
+router.use(verifyToken); 
 
-router.post('/add', classController.addClass);
-router.get('/', classController.getClasses);
+// 1. Class Create Endpoint (Frontend ke API.post('/classes/create') se mapped)
+router.post('/create', classController.addClass);
+
+// 2. Dropdown Meta-data Fetch (Frontend ke API.get('/classes/meta-data') se mapped)
+router.get('/meta-data', classController.getClassDropdownData);
+
+// 3. Student mapping (Frontend ke API.post('/classes/assign-student') se mapped)
 router.post('/assign-student', classController.assignStudent);
-router.get('/:classId/students', classController.getClassStudents);
 
 module.exports = router;
