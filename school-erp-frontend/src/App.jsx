@@ -14,9 +14,9 @@ import StudentForm from './pages/StudentForm';
 import Register from './pages/Register';
 import LandingPage from './pages/LandingPage';
 import StudentView from './pages/StudentView';
-import Teacher from '../../school_erp_backend/models/teacherModel';
 import TeacherForm from './pages/TeacherForm';
-
+import Teacher from './pages/Teacher';
+import TeacherView from './pages/TeacherView';
 // 🛡️ 1. GUEST GUARD: Logged in users ko public matrix se bahar rakhega
 const GuestRoute = ({ children }) => {
   const { token, loading } = useAuth();
