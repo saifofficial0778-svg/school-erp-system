@@ -26,20 +26,47 @@ const ClassModel = {
 
     // 3. Assign Student to Class (Student Mapping)
     assignStudentToClass: async (schoolId, studentId, classId, academicYear = '2026-2027') => {
-        // Old active mapping ko deactivate karo agar already hai
-        await pool.query(
-            `UPDATE student_class_mapping SET status = 'promoted' 
-             WHERE student_id = ? AND school_id = ? AND status = 'active'`,
-            [studentId, schoolId]
+
+        // Check if student already has a record for this academic year
+        const [existing] = await pool.query(
+            `SELECT id
+         FROM student_class_mapping
+         WHERE student_id = ?
+         AND school_id = ?
+         AND academic_year = ?`,
+            [studentId, schoolId, academicYear]
         );
 
-        // New mapping insert
-        const [result] = await pool.query(
-            `INSERT INTO student_class_mapping (school_id, student_id, class_id, academic_year, status)
-             VALUES (?, ?, ?, ?, 'active')`,
-            [schoolId, studentId, classId, academicYear]
+        if (existing.length > 0) {
+
+            // Same academic year -> UPDATE
+            await pool.query(
+                `UPDATE student_class_mapping
+             SET class_id = ?, status = 'active'
+             WHERE id = ?`,
+                [classId, existing[0].id]
+            );
+
+        } else {
+
+            // New academic year -> INSERT
+            await pool.query(
+                `INSERT INTO student_class_mapping
+            (school_id, student_id, class_id, academic_year, status)
+            VALUES (?, ?, ?, ?, 'active')`,
+                [schoolId, studentId, classId, academicYear]
+            );
+        }
+
+        // Update fee summary
+        await pool.query(
+            `UPDATE fee_summary fs
+         JOIN classes c ON c.id = ?
+         SET fs.total_fee = c.monthly_fee
+         WHERE fs.student_id = ?
+         AND fs.school_id = ?`,
+            [classId, studentId, schoolId]
         );
-        return result.insertId;
     },
 
     // 4. Fetch Students in a Class
