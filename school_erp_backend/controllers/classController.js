@@ -9,7 +9,7 @@ exports.addClass = catchAsync(async (req, res, next) => {
     const { class_name, section, teacher_id, monthly_fee } = req.body;
     const school_id = req.user.schoolId;
 
-    if (!class_name || !section) {
+    if (!class_name || !section ) {
         return next(new AppError("Bhai, Class Name aur Section mandatory hai!", 400));
     }
 

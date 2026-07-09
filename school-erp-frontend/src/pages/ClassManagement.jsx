@@ -50,6 +50,7 @@ const ClassManagement = () => {
     // 1. Create Class
     const handleCreateClass = async (e) => {
         e.preventDefault();
+          console.log("Submitting Data:", newClass); // 👈 Add this
         try {
             const res = await API.post('/classes/create', newClass);
             alert(res.data.message);
