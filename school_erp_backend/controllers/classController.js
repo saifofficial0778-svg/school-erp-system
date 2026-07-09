@@ -64,3 +64,15 @@ exports.assignStudent = catchAsync(async (req, res, next) => {
         message: "Student ko class aur custom fee successfully assign ho gayi! 🎯🚀"
     });
 });
+
+exports.getStudentsByClass = catchAsync(async (req, res, next) => {
+    const classId = req.params.id;
+    const schoolId = req.user.schoolId;
+
+    const students = await ClassModel.getStudentsByClass(classId, schoolId);
+
+    res.status(200).json({
+        success: true,
+        data: students
+    });
+});

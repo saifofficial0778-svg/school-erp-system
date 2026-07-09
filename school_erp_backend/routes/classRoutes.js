@@ -14,5 +14,6 @@ router.get('/meta-data', classController.getClassDropdownData);
 
 // 3. Student mapping (Frontend ke API.post('/classes/assign-student') se mapped)
 router.post('/assign-student', classController.assignStudent);
+router.get('/:id/students', classController.getStudentsByClass);
 
 module.exports = router;
