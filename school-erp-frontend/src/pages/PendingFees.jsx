@@ -5,7 +5,7 @@ const PendingFee = () => {
     const [rawDetails, setRawDetails] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
     const [loading, setLoading] = useState(false);
-    
+
     // Dropdown Status States
     const [selectedClass, setSelectedClass] = useState('All');
     const [selectedStatus, setSelectedStatus] = useState('All');
@@ -13,7 +13,7 @@ const PendingFee = () => {
     const fetchFeeReportData = async () => {
         try {
             setLoading(true);
-           const res = await API.get('/fees/report-page');
+            const res = await API.get('/fees/report-page');
             if (res?.data?.success) {
                 setRawDetails(res.data.data);
                 setFilteredData(res.data.data); // Initial state
@@ -62,14 +62,14 @@ const PendingFee = () => {
                     <h1 className="text-xl font-bold text-slate-800 tracking-tight">Fee Ledger & Defaulters Panel</h1>
                     <p className="text-xs text-gray-400">Track paid records, pending dues, and manage institution collections dynamic</p>
                 </div>
-                
+
                 {/* 🎯 Dropdown Filters Feature Section */}
                 <div className="flex flex-wrap items-center gap-3">
                     {/* Class Filter */}
                     <div className="flex flex-col">
                         <label className="text-[10px] font-bold text-gray-400 uppercase mb-1">Filter Class</label>
-                        <select 
-                            value={selectedClass} 
+                        <select
+                            value={selectedClass}
                             onChange={(e) => setSelectedClass(e.target.value)}
                             className="bg-white border border-gray-200 text-xs font-semibold text-slate-700 px-3 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                         >
@@ -82,8 +82,8 @@ const PendingFee = () => {
                     {/* Status Filter */}
                     <div className="flex flex-col">
                         <label className="text-[10px] font-bold text-gray-400 uppercase mb-1">Collection Status</label>
-                        <select 
-                            value={selectedStatus} 
+                        <select
+                            value={selectedStatus}
                             onChange={(e) => setSelectedStatus(e.target.value)}
                             className="bg-white border border-gray-200 text-xs font-semibold text-slate-700 px-3 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                         >
@@ -128,9 +128,9 @@ const PendingFee = () => {
                                 </tr>
                             ) : (
                                 filteredData.map((student) => {
-                                    const totalBill = parseFloat(student.total_bill_amount) || 0;
-                                    const paid = parseFloat(student.amount_paid) || 0;
-                                    const balance = totalBill - paid;
+                                    const totalBill = parseFloat(student.total_fee) || 0;
+                                    const paid = parseFloat(student.total_paid) || 0;
+                                    const balance = parseFloat(student.total_due) || 0;
 
                                     // Dynamic Badge UI Logic
                                     let badgeStyle = "bg-amber-50 text-amber-700 border-amber-100";
