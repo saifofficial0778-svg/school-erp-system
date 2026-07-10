@@ -29,20 +29,34 @@ const PendingFee = () => {
         fetchFeeReportData();
     }, []);
 
+    // ✅ NEW: Class + Section combined label banane wala helper
+    // "class_name" akela dikhane ke bajaye "class_name - Sec X" banata hai
+    const getClassLabel = (item) =>
+        item.class_name
+            ? `${item.class_name}${item.section ? ' - Sec ' + item.section : ''}`
+            : 'N/A';
+
     // 🔄 Dynamic Filter Logic (Jab bhi dropdown change hoga, yeh chalega)
     useEffect(() => {
         let data = [...rawDetails];
 
-        // 1. Class wise filter
+        // 1. Class wise filter — ✅ FIX: ab combined class+section label se compare hota hai
         if (selectedClass !== 'All') {
-            data = data.filter(item => item.class_name === selectedClass);
+            data = data.filter(item => getClassLabel(item) === selectedClass);
         }
 
-        // 2. Status wise filter (Paid, Pending, Overdue)
+        // 2. Status wise filter (Paid, Pending, Overdue, Partially Paid)
         if (selectedStatus !== 'All') {
             if (selectedStatus === 'defaulters') {
-                // Defaulter matlab jiska status pending ya overdue dono me se kuch bhi ho
-                data = data.filter(item => item.status === 'pending' || item.status === 'overdue' || item.status === 'partially_paid');
+                // Defaulter matlab jiska status pending, overdue, ya partial ho
+                data = data.filter(item =>
+                    item.status === 'pending' ||
+                    item.status === 'overdue' ||
+                    item.status === 'partial'
+                );
+            } else if (selectedStatus === 'partially_paid') {
+                // ✅ FIX: backend 'partial' bhejta hai, dropdown 'partially_paid' hai — map kar diya
+                data = data.filter(item => item.status === 'partial');
             } else {
                 data = data.filter(item => item.status.toLowerCase() === selectedStatus.toLowerCase());
             }
@@ -51,8 +65,18 @@ const PendingFee = () => {
         setFilteredData(data);
     }, [selectedClass, selectedStatus, rawDetails]);
 
-    // Unique Classes list nikalne ke liye for Dropdown dynamic numbers
-    const uniqueClasses = ['All', ...new Set(rawDetails.map(item => item.class_name).filter(Boolean))];
+    // ✅ FIX: Unique Classes list ab class_name+section combo se banti hai (dropdown ke liye)
+    const uniqueClasses = ['All', ...new Set(
+        rawDetails.map(item => getClassLabel(item)).filter(label => label !== 'N/A')
+    )];
+
+    // ✅ NEW: Backend ke status codes ko friendly display text me map karta hai
+    const statusLabelMap = {
+        paid: 'PAID',
+        partial: 'PARTIALLY PAID',
+        pending: 'PENDING',
+        overdue: 'OVERDUE'
+    };
 
     return (
         <div className="space-y-6 p-6 bg-slate-50/50 min-h-screen font-sans">
@@ -74,7 +98,7 @@ const PendingFee = () => {
                             className="bg-white border border-gray-200 text-xs font-semibold text-slate-700 px-3 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                         >
                             {uniqueClasses.map(cls => (
-                                <option key={cls} value={cls}>{cls === 'All' ? 'All Classes' : `Class ${cls}`}</option>
+                                <option key={cls} value={cls}>{cls === 'All' ? 'All Classes' : cls}</option>
                             ))}
                         </select>
                     </div>
@@ -128,24 +152,34 @@ const PendingFee = () => {
                                 </tr>
                             ) : (
                                 filteredData.map((student) => {
+                                    // ✅ FIX: backend se aane wale sahi field names use kiye
                                     const totalBill = parseFloat(student.total_fee) || 0;
                                     const paid = parseFloat(student.total_paid) || 0;
                                     const balance = parseFloat(student.total_due) || 0;
 
+                                    const statusKey = (student.status || 'pending').toLowerCase();
+                                    const badgeText = statusLabelMap[statusKey] || student.status;
+
                                     // Dynamic Badge UI Logic
                                     let badgeStyle = "bg-amber-50 text-amber-700 border-amber-100";
-                                    let badgeText = student.status;
-                                    if (student.status.toLowerCase() === 'paid') {
+                                    if (statusKey === 'paid') {
                                         badgeStyle = "bg-emerald-50 text-emerald-700 border-emerald-100";
-                                    } else if (student.status.toLowerCase() === 'overdue' || balance > 0 && student.status.toLowerCase() === 'pending') {
+                                    } else if (statusKey === 'overdue' || (balance > 0 && statusKey === 'pending')) {
                                         badgeStyle = "bg-rose-50 text-rose-700 border-rose-100";
+                                    } else if (statusKey === 'partial') {
+                                        badgeStyle = "bg-amber-50 text-amber-700 border-amber-100";
                                     }
 
                                     return (
                                         <tr key={student.student_id} className="hover:bg-slate-50/40 transition-all">
                                             <td className="px-6 py-4 font-mono text-gray-400">#{student.admission_number || student.student_id}</td>
                                             <td className="px-6 py-4 font-bold text-slate-900">{student.full_name}</td>
-                                            <td className="px-6 py-4"><span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md text-[10px]">Class {student.class_name || 'N/A'}</span></td>
+                                            <td className="px-6 py-4">
+                                                {/* ✅ FIX: ab section bhi combined dikhega, e.g. "NC - Sec A" */}
+                                                <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md text-[10px]">
+                                                    {getClassLabel(student)}
+                                                </span>
+                                            </td>
                                             <td className="px-6 py-4 font-mono text-gray-500">₹{totalBill.toLocaleString()}</td>
                                             <td className="px-6 py-4 font-mono text-emerald-600">₹{paid.toLocaleString()}</td>
                                             <td className={`px-6 py-4 font-mono font-bold ${balance > 0 ? 'text-rose-600' : 'text-slate-400'}`}>

@@ -66,13 +66,20 @@ const ClassModel = {
         [classId]
     );
     const monthlyFee = classRow[0]?.monthly_fee || 0;
-
-    if (feeRow.length > 0) {
-        await pool.query(
-            `UPDATE fee_summary SET total_fee = ? WHERE student_id = ? AND school_id = ?`,
-            [monthlyFee, studentId, schoolId]
-        );
-    } else {
+if (feeRow.length > 0) {
+    // ✅ FIX: total_fee ke saath status bhi recalculate karo
+    await pool.query(
+        `UPDATE fee_summary 
+         SET total_fee = ?,
+             status = CASE 
+                WHEN total_paid >= ? THEN 'paid'
+                WHEN total_paid > 0 THEN 'partial'
+                ELSE 'pending'
+             END
+         WHERE student_id = ? AND school_id = ?`,
+        [monthlyFee, monthlyFee, studentId, schoolId]
+    );
+} else {
         await pool.query(
             `INSERT INTO fee_summary (school_id, student_id, total_fee, total_paid, status)
              VALUES (?, ?, ?, 0.00, 'pending')`,

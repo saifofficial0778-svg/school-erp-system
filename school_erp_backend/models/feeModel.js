@@ -116,28 +116,27 @@ const Fee = {
     // 5. FEE REPORT PAGE
     // =============================================
     fetchFeeReports: async (schoolId) => {
-        const [rows] = await pool.query(
-            `SELECT 
-                s.id AS student_id,
-                s.full_name,
-                s.admission_number,
-                c.class_name,
-                IFNULL(fs.total_fee, 0.00) AS total_fee,
-                IFNULL(fs.total_paid, 0.00) AS total_paid,
-                IFNULL(fs.total_due, 0.00) AS total_due,
-                IFNULL(fs.status, 'pending') AS status,
-                fs.last_payment_date
-             FROM students s
-             
-             LEFT JOIN student_class_mapping scm ON s.id = scm.student_id AND scm.status = 'active'
-             LEFT JOIN classes c ON scm.class_id = c.id
-             LEFT JOIN fee_summary fs ON s.id = fs.student_id AND s.school_id = fs.school_id
-             WHERE s.school_id = ?`,
-            [schoolId]
-        );
-        return rows;
-    },
-
+    const [rows] = await pool.query(
+        `SELECT 
+            s.id AS student_id,
+            s.full_name,
+            s.admission_number,
+            c.class_name,
+            c.section,
+            IFNULL(fs.total_fee, 0.00) AS total_fee,
+            IFNULL(fs.total_paid, 0.00) AS total_paid,
+            IFNULL(fs.total_due, 0.00) AS total_due,
+            IFNULL(fs.status, 'pending') AS status,
+            fs.last_payment_date
+         FROM students s
+         LEFT JOIN student_class_mapping scm ON s.id = scm.student_id AND scm.status = 'active'
+         LEFT JOIN classes c ON scm.class_id = c.id
+         LEFT JOIN fee_summary fs ON s.id = fs.student_id AND s.school_id = fs.school_id
+         WHERE s.school_id = ?`,
+        [schoolId]
+    );
+    return rows;
+},
     // =============================================
     // 6. DASHBOARD PIE CHART DATA
     // =============================================
