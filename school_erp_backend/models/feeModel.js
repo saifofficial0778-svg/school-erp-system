@@ -19,48 +19,60 @@ const Fee = {
     // fee_logs mein naya row + fee_summary mein total_paid update
     // =============================================
     recordPayment: async (schoolId, studentId, amountPaid, paymentMode, transactionId, remarks) => {
-        const connection = await pool.getConnection();
+    const connection = await pool.getConnection();
 
-        try {
-            await connection.beginTransaction();
+    try {
+        await connection.beginTransaction();
 
-            const paymentDate = new Date().toISOString().split('T')[0];
+        const paymentDate = new Date().toISOString().split('T')[0];
 
-            // Step 1: fee_logs mein naya payment log INSERT karo
-            await connection.query(
-                `INSERT INTO fee_logs 
-                 (school_id, student_id, amount_paid, payment_date, payment_mode, transaction_id, remarks)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                [schoolId, studentId, amountPaid, paymentDate, paymentMode,
-                    transactionId || `TXN_${Date.now()}`, remarks || null]
-            );
+        // Step 1: fee_logs mein naya payment log INSERT karo (same as before)
+        await connection.query(
+            `INSERT INTO fee_logs 
+             (school_id, student_id, amount_paid, payment_date, payment_mode, transaction_id, remarks)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [schoolId, studentId, amountPaid, paymentDate, paymentMode,
+                transactionId || `TXN_${Date.now()}`, remarks || null]
+        );
 
-            // Step 2: fee_summary mein total_paid update karo (running total)
-            // total_due automatically update hoga (GENERATED column hai)
-            await connection.query(
-                `UPDATE fee_summary 
-                 SET 
-                    total_paid = total_paid + ?,
-                    last_payment_date = ?,
-                    last_payment_mode = ?,
-                    status = CASE 
-                        WHEN (total_paid + ?) >= total_fee THEN 'paid'
-                        ELSE 'partial'
-                    END
-                 WHERE student_id = ? AND school_id = ?`,
-                [amountPaid, paymentDate, paymentMode, amountPaid, studentId, schoolId]
-            );
+        // Step 2: ✅ FIX — pehle current total_paid/total_fee row-lock karke fetch karo
+        const [rows] = await connection.query(
+            `SELECT total_paid, total_fee FROM fee_summary 
+             WHERE student_id = ? AND school_id = ? FOR UPDATE`,
+            [studentId, schoolId]
+        );
 
-            await connection.commit();
-            return { success: true };
-
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        } finally {
-            connection.release();
+        if (rows.length === 0) {
+            throw new Error('Fee summary record nahi mila is student ka.');
         }
-    },
+
+        // Step 3: ✅ JS me hi purani value se naya total calculate karo (double-add nahi hoga)
+        const currentPaid = parseFloat(rows[0].total_paid);
+        const totalFee = parseFloat(rows[0].total_fee);
+        const newTotalPaid = currentPaid + amountPaid;
+
+        const newStatus = newTotalPaid >= totalFee
+            ? 'paid'
+            : (newTotalPaid > 0 ? 'partial' : 'pending');
+
+        // Step 4: ek hi baar clean UPDATE — koi double-reference nahi
+        await connection.query(
+            `UPDATE fee_summary 
+             SET total_paid = ?, last_payment_date = ?, last_payment_mode = ?, status = ?
+             WHERE student_id = ? AND school_id = ?`,
+            [newTotalPaid, paymentDate, paymentMode, newStatus, studentId, schoolId]
+        );
+
+        await connection.commit();
+        return { success: true };
+
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
+},
 
     // =============================================
     // 3. FEE MANAGEMENT PAGE - sabhi students ki summary
