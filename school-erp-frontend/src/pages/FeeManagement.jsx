@@ -99,7 +99,7 @@ const FeesManagement = () => {
               </tr>
             ) : (
               filteredRecords.map((record, idx) => {
-                const balance = parseFloat(record.total_bill_amount || 0) - parseFloat(record.amount_paid || 0);
+                const balance = parseFloat(record.total_due || 0);
                 return (
                   <tr key={record.student_id || idx} className="hover:bg-slate-50/30 transition-colors">
                     <td className="px-6 py-4 font-bold text-gray-900">
@@ -111,8 +111,8 @@ const FeesManagement = () => {
                         }`}>{record.status}</span>
                     </td>
                     <td className="px-6 py-4 font-mono text-slate-600">
-                      ₹{parseFloat(record.amount_paid).toLocaleString('en-IN', { minimumFractionDigits: 2 })} /
-                      <span className="text-gray-400"> ₹{parseFloat(record.total_bill_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                      ₹{parseFloat(record.total_paid || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} /
+                      <span>₹{parseFloat(record.total_fee || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                     </td>
                     <td className={`px-6 py-4 font-mono font-bold ${balance > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
                       ₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
