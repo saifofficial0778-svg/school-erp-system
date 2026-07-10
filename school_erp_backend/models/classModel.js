@@ -26,15 +26,41 @@ const ClassModel = {
 
     // 3. Assign Student to Class (Student Mapping)
    assignStudentToClass: async (schoolId, studentId, classId, academicYear = '2026-2027') => {
-    // ... (student_class_mapping wala existing code same rahega) ...
 
-    // 🔧 FIX: fee_summary row exist karti hai ya nahi, pehle check karo
+    // ✅ Part 1: student_class_mapping me insert/update (ASLI CODE WAPAS DAALA)
+    const [existing] = await pool.query(
+        `SELECT id
+         FROM student_class_mapping
+         WHERE student_id = ?
+         AND school_id = ?
+         AND academic_year = ?`,
+        [studentId, schoolId, academicYear]
+    );
+
+    if (existing.length > 0) {
+        // Same academic year -> UPDATE
+        await pool.query(
+            `UPDATE student_class_mapping
+             SET class_id = ?, status = 'active'
+             WHERE id = ?`,
+            [classId, existing[0].id]
+        );
+    } else {
+        // New academic year -> INSERT
+        await pool.query(
+            `INSERT INTO student_class_mapping
+             (school_id, student_id, class_id, academic_year, status)
+             VALUES (?, ?, ?, ?, 'active')`,
+            [schoolId, studentId, classId, academicYear]
+        );
+    }
+
+    // ✅ Part 2: fee_summary check-then-insert-or-update (ye tumhara sahi hai, waisa hi rehne do)
     const [feeRow] = await pool.query(
         `SELECT id FROM fee_summary WHERE student_id = ? AND school_id = ?`,
         [studentId, schoolId]
     );
 
-    // Class ki monthly_fee nikalo
     const [classRow] = await pool.query(
         `SELECT monthly_fee FROM classes WHERE id = ?`,
         [classId]
@@ -42,13 +68,11 @@ const ClassModel = {
     const monthlyFee = classRow[0]?.monthly_fee || 0;
 
     if (feeRow.length > 0) {
-        // Row exist karti hai -> UPDATE
         await pool.query(
             `UPDATE fee_summary SET total_fee = ? WHERE student_id = ? AND school_id = ?`,
             [monthlyFee, studentId, schoolId]
         );
     } else {
-        // Row exist nahi karti -> INSERT (jo pehle kabhi bani hi nahi thi)
         await pool.query(
             `INSERT INTO fee_summary (school_id, student_id, total_fee, total_paid, status)
              VALUES (?, ?, ?, 0.00, 'pending')`,
