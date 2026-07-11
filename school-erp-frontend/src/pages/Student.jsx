@@ -10,7 +10,6 @@ const Student = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // 🔄 Fetch Students Function
   const fetchStudents = async () => {
     try {
       setLoading(true);
@@ -35,12 +34,10 @@ const Student = () => {
     if (user?.schoolId) fetchStudents();
   }, [user?.schoolId]);
 
-  // ✏️ EDIT HANDLER: StudentForm par redirect karega query param lekar
   const handleEdit = (studentId) => {
-    navigate(`/student/new?id=${studentId}`); // 🎯 /student/new par hi bhej do
+    navigate(`/student/new?id=${studentId}`);
   };
 
-  // 🗑️ DELETE HANDLER
   const handleDelete = async (studentId, studentName) => {
     const confirmDelete = window.confirm(`Bhai, kya aap sach me ${studentName} ka profile delete karna chahte ho?`);
     if (!confirmDelete) return;
@@ -50,7 +47,6 @@ const Student = () => {
       const res = await API.delete(`/students/${studentId}`);
 
       if (res.data.success || res.status === 200) {
-        alert("Student successfully remove ho gaya! 🗑️");
         setStudentList((prev) => prev.filter((student) => student.id !== studentId));
       }
     } catch (error) {
@@ -67,31 +63,77 @@ const Student = () => {
     return name.includes(searchTerm.toLowerCase()) || adm.includes(searchTerm.toLowerCase());
   });
 
+  // Directory-wide stats
+  const maleCount = studentList.filter(s => (s.gender || '').toLowerCase() === 'male').length;
+  const femaleCount = studentList.filter(s => (s.gender || '').toLowerCase() === 'female').length;
+
+  const getInitials = (name = '') =>
+    name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+
+  const avatarGradients = [
+    'from-purple-500 to-fuchsia-600',
+    'from-violet-500 to-indigo-600',
+    'from-pink-500 to-rose-600',
+    'from-fuchsia-500 to-purple-700',
+  ];
+  const gradientFor = (id) => avatarGradients[(id || 0) % avatarGradients.length];
+
   return (
-    <div className="space-y-6 p-6 bg-slate-50/50 min-h-screen">
-      {/* Header */}
-      <div className="border-b border-gray-100 pb-4 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-purple-900 tracking-tight">Student</h1>
-          <p className="text-xs text-gray-500 mt-0.5">Manage all enrolled students.</p>
+    <div className="space-y-6 p-6 bg-gradient-to-br from-slate-50 via-slate-50 to-purple-50/40 min-h-screen font-sans">
+
+      {/* 🎯 HERO HEADER */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-950 via-purple-900 to-fuchsia-900 p-8 shadow-xl">
+        <div className="absolute -top-16 -right-10 w-72 h-72 bg-fuchsia-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 -left-10 w-72 h-72 bg-purple-400/10 rounded-full blur-3xl"></div>
+
+        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div>
+            <span className="inline-block px-3 py-1 rounded-full bg-white/10 text-purple-200 text-[10px] font-bold uppercase tracking-widest mb-3">
+              Student Registry
+            </span>
+            <h1 className="text-3xl font-black text-white tracking-tight">Enrolled Students</h1>
+            <p className="text-sm text-purple-200/80 mt-1.5">Manage admissions, profiles, and enrollment records.</p>
+          </div>
+
+          <button
+            onClick={() => navigate('/student/new')}
+            className="bg-white hover:bg-purple-50 text-purple-900 font-bold text-sm px-5 py-3 rounded-xl shadow-lg transition-all flex items-center gap-2 self-start lg:self-auto"
+          >
+            <span className="text-lg leading-none">＋</span> Add Student
+          </button>
         </div>
-        <button
-          onClick={() => navigate('/student/new')}
-          className="bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2"
-        >
-          <span>＋</span> Add Student
-        </button>
+
+        {/* Inline directory stats */}
+        <div className="relative grid grid-cols-3 gap-4 mt-8">
+          <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3">
+            <p className="text-[9px] font-bold text-purple-200 uppercase tracking-wider">Total Students</p>
+            <p className="text-2xl font-black text-white font-mono mt-0.5">{studentList.length}</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3">
+            <p className="text-[9px] font-bold text-purple-200 uppercase tracking-wider">Male</p>
+            <p className="text-2xl font-black text-white font-mono mt-0.5">{maleCount}</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3">
+            <p className="text-[9px] font-bold text-purple-200 uppercase tracking-wider">Female</p>
+            <p className="text-2xl font-black text-white font-mono mt-0.5">{femaleCount}</p>
+          </div>
+        </div>
       </div>
 
       {/* Search */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-        <input
-          type="text"
-          placeholder="Search by name, admission no..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-slate-50/60 border border-gray-200 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-purple-600 focus:bg-white transition-all"
-        />
+        <div className="relative">
+          <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by name, admission no..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-slate-50/60 border border-gray-200 pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
+          />
+        </div>
       </div>
 
       {/* Table */}
@@ -104,16 +146,27 @@ const Student = () => {
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-sm font-semibold text-gray-400 animate-pulse">
-            🔄 Syncing database logs...
+          <div className="p-6 space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 animate-pulse">
+                <div className="w-9 h-9 rounded-full bg-slate-100"></div>
+                <div className="h-3 w-40 bg-slate-100 rounded"></div>
+                <div className="h-3 w-24 bg-slate-100 rounded ml-auto"></div>
+              </div>
+            ))}
+          </div>
+        ) : filteredList.length === 0 ? (
+          <div className="p-16 text-center">
+            <span className="text-4xl">🎓</span>
+            <p className="text-gray-400 font-medium text-sm mt-3">No students found.</p>
+            <p className="text-gray-300 text-xs mt-1">Try a different search, or enroll a new student.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/50 text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-gray-100">
-                  <th className="px-6 py-3.5">System ID</th>
-                  <th className="px-6 py-3.5">Full Name</th>
+                  <th className="px-6 py-3.5">Student</th>
                   <th className="px-6 py-3.5">Admission No.</th>
                   <th className="px-6 py-3.5">Roll Number</th>
                   <th className="px-6 py-3.5">Gender</th>
@@ -122,77 +175,73 @@ const Student = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
-                {filteredList.length === 0 ? (
-                  <tr>
-                    <td colSpan="7" className="px-6 py-10 text-center text-gray-400 font-medium">
-                      No records found.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredList.map((student, index) => {
-                    const currentName = student.fullName || student.full_name;
-                    return (
-                      <tr key={student.id || index} className="hover:bg-slate-50/40 transition-all">
-                        <td className="px-6 py-4 font-mono text-xs font-bold text-purple-600">
-                          #{student.id || "TEMP"}
-                        </td>
-                        <td className="px-6 py-4 font-semibold text-gray-800">
-                          {currentName}
-                        </td>
-                        <td className="px-6 py-4 font-mono text-xs text-gray-500">
-                          {student.admissionNumber || student.admission_number}
-                        </td>
-                        <td className="px-6 py-4 font-mono text-xs font-bold text-gray-500">
-                          {student.rollNumber || student.roll_number}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${(student.gender || '').toLowerCase() === 'male' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'
-                            }`}>
-                            {student.gender || "—"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-gray-500 italic">
-                          {student.guardianName || student.guardian_name || "—"}
-                        </td>
-
-                        {/* Actions Control Box */}
-                        <td className="px-6 py-4 text-center">
-                          <div className="flex justify-center items-center gap-3">
-                            <button
-                              onClick={() => navigate(`/student/profile-view?id=${student.id}`)} // 🎯 Sahi path match kar diya query param ke sath!
-                              title="View Full Profile"
-                              className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-all"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => handleEdit(student.id)}
-                              title="Edit Student"
-                              className="text-amber-600 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 p-2 rounded-lg transition-all"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                              </svg>
-                            </button>
-
-                            <button
-                              onClick={() => handleDelete(student.id, currentName)}
-                              title="Delete Student"
-                              className="text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 p-2 rounded-lg transition-all"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                              </svg>
-                            </button>
+                {filteredList.map((student, index) => {
+                  const currentName = student.fullName || student.full_name;
+                  return (
+                    <tr key={student.id || index} className="hover:bg-slate-50/40 transition-all">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${gradientFor(student.id)} flex items-center justify-center text-white font-black text-[11px] shrink-0`}>
+                            {getInitials(currentName)}
                           </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
+                          <div>
+                            <p className="font-semibold text-gray-800">{currentName}</p>
+                            <p className="text-[10px] text-gray-400 font-mono">#{student.id || 'TEMP'}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 font-mono text-xs text-gray-500">
+                        {student.admissionNumber || student.admission_number}
+                      </td>
+                      <td className="px-6 py-4 font-mono text-xs font-bold text-gray-500">
+                        {student.rollNumber || student.roll_number}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${(student.gender || '').toLowerCase() === 'male' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'
+                          }`}>
+                          {student.gender || "—"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-500 italic">
+                        {student.guardianName || student.guardian_name || "—"}
+                      </td>
+
+                      <td className="px-6 py-4 text-center">
+                        <div className="flex justify-center items-center gap-3">
+                          <button
+                            onClick={() => navigate(`/student/profile-view?id=${student.id}`)}
+                            title="View Full Profile"
+                            className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-all"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleEdit(student.id)}
+                            title="Edit Student"
+                            className="text-amber-600 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 p-2 rounded-lg transition-all"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                            </svg>
+                          </button>
+
+                          <button
+                            onClick={() => handleDelete(student.id, currentName)}
+                            title="Delete Student"
+                            className="text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 p-2 rounded-lg transition-all"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
