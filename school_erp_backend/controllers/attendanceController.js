@@ -113,22 +113,22 @@ exports.getAttendanceReport = async (req, res) => {
         
         const studentMap = {};
 
-        rawRows.forEach(row => {
+       rawRows.forEach(row => {
             const sId = row.student_id;
             if (!sId) return;
 
-            // ✅ Exact aliases mapped matching step 1
             if (!studentMap[sId]) {
                 studentMap[sId] = {
                     student_id: sId,
                     full_name: row.student_name || 'Unknown Student',
                     admission_number: row.admission_no || sId,
+                    class_name: row.class_name || null,      // ✅ NEW
+                    section: row.section || null,             // ✅ NEW
                     total_classes: 0,
                     attended_classes: 0
                 };
             }
 
-            // ✅ Attendance metrics evaluation using log_status
             if (row.attendance_id) {
                 studentMap[sId].total_classes += 1;
                 if (row.log_status === 'present') {

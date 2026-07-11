@@ -45,15 +45,20 @@ const Attendance = {
     },
 
     // 🟢 FIXED ADDITION: fetchMonthlyReport ko isi single object ke andar lapet diya!
+    // 🟢 UPDATED: ab class_name aur section bhi saath aayega
     fetchMonthlyReport: async (schoolId) => {
         const query = `
             SELECT 
                 s.id AS student_id,
                 s.full_name AS student_name,
                 s.admission_number AS admission_no,
+                c.class_name,
+                c.section,
                 a.id AS attendance_id,
                 a.status AS log_status
             FROM students s
+            LEFT JOIN student_class_mapping scm ON s.id = scm.student_id AND scm.status = 'active'
+            LEFT JOIN classes c ON scm.class_id = c.id
             LEFT JOIN attendance a ON s.id = a.student_id
             WHERE s.school_id = ?;
         `;
