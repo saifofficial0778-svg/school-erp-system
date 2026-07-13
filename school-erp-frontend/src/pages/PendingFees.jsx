@@ -6,7 +6,6 @@ const PendingFee = () => {
     const [filteredData, setFilteredData] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    // Dropdown Status States
     const [selectedClass, setSelectedClass] = useState('All');
     const [selectedStatus, setSelectedStatus] = useState('All');
 
@@ -16,7 +15,7 @@ const PendingFee = () => {
             const res = await API.get('/fees/report-page');
             if (res?.data?.success) {
                 setRawDetails(res.data.data);
-                setFilteredData(res.data.data); // Initial state
+                setFilteredData(res.data.data);
             }
             setLoading(false);
         } catch (error) {
@@ -29,33 +28,26 @@ const PendingFee = () => {
         fetchFeeReportData();
     }, []);
 
-    // ✅ NEW: Class + Section combined label banane wala helper
-    // "class_name" akela dikhane ke bajaye "class_name - Sec X" banata hai
     const getClassLabel = (item) =>
         item.class_name
             ? `${item.class_name}${item.section ? ' - Sec ' + item.section : ''}`
             : 'N/A';
 
-    // 🔄 Dynamic Filter Logic (Jab bhi dropdown change hoga, yeh chalega)
     useEffect(() => {
         let data = [...rawDetails];
 
-        // 1. Class wise filter — ✅ FIX: ab combined class+section label se compare hota hai
         if (selectedClass !== 'All') {
             data = data.filter(item => getClassLabel(item) === selectedClass);
         }
 
-        // 2. Status wise filter (Paid, Pending, Overdue, Partially Paid)
         if (selectedStatus !== 'All') {
             if (selectedStatus === 'defaulters') {
-                // Defaulter matlab jiska status pending, overdue, ya partial ho
                 data = data.filter(item =>
                     item.status === 'pending' ||
                     item.status === 'overdue' ||
                     item.status === 'partial'
                 );
             } else if (selectedStatus === 'partially_paid') {
-                // ✅ FIX: backend 'partial' bhejta hai, dropdown 'partially_paid' hai — map kar diya
                 data = data.filter(item => item.status === 'partial');
             } else {
                 data = data.filter(item => item.status.toLowerCase() === selectedStatus.toLowerCase());
@@ -65,12 +57,10 @@ const PendingFee = () => {
         setFilteredData(data);
     }, [selectedClass, selectedStatus, rawDetails]);
 
-    // ✅ FIX: Unique Classes list ab class_name+section combo se banti hai (dropdown ke liye)
     const uniqueClasses = ['All', ...new Set(
         rawDetails.map(item => getClassLabel(item)).filter(label => label !== 'N/A')
     )];
 
-    // ✅ NEW: Backend ke status codes ko friendly display text me map karta hai
     const statusLabelMap = {
         paid: 'PAID',
         partial: 'PARTIALLY PAID',
@@ -78,46 +68,73 @@ const PendingFee = () => {
         overdue: 'OVERDUE'
     };
 
-    return (
-        <div className="space-y-6 p-6 bg-slate-50/50 min-h-screen font-sans">
-            {/* Header section */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                    <h1 className="text-xl font-bold text-slate-800 tracking-tight">Fee Ledger & Defaulters Panel</h1>
-                    <p className="text-xs text-gray-400">Track paid records, pending dues, and manage institution collections dynamic</p>
-                </div>
+    // Ledger-wide stats
+    const totalDemanded = filteredData.reduce((sum, r) => sum + (parseFloat(r.total_fee) || 0), 0);
+    const totalCleared = filteredData.reduce((sum, r) => sum + (parseFloat(r.total_paid) || 0), 0);
+    const defaulterCount = filteredData.filter(r => r.status !== 'paid').length;
 
-                {/* 🎯 Dropdown Filters Feature Section */}
-                <div className="flex flex-wrap items-center gap-3">
-                    {/* Class Filter */}
-                    <div className="flex flex-col">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase mb-1">Filter Class</label>
-                        <select
-                            value={selectedClass}
-                            onChange={(e) => setSelectedClass(e.target.value)}
-                            className="bg-white border border-gray-200 text-xs font-semibold text-slate-700 px-3 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                        >
-                            {uniqueClasses.map(cls => (
-                                <option key={cls} value={cls}>{cls === 'All' ? 'All Classes' : cls}</option>
-                            ))}
-                        </select>
+    return (
+        <div className="space-y-6 p-6 bg-gradient-to-br from-slate-50 via-slate-50 to-rose-50/40 min-h-screen font-sans">
+
+            {/* 🎯 HERO HEADER */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-rose-950 to-amber-900 p-8 shadow-xl">
+                <div className="absolute -top-16 -right-10 w-72 h-72 bg-rose-500/20 rounded-full blur-3xl"></div>
+                <div className="absolute -bottom-20 -left-10 w-72 h-72 bg-amber-400/10 rounded-full blur-3xl"></div>
+
+                <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                    <div>
+                        <span className="inline-block px-3 py-1 rounded-full bg-white/10 text-rose-200 text-[10px] font-bold uppercase tracking-widest mb-3">
+                            Defaulters Panel
+                        </span>
+                        <h1 className="text-3xl font-black text-white tracking-tight">Fee Ledger & Defaulters</h1>
+                        <p className="text-sm text-rose-200/80 mt-1.5">Track paid records, pending dues, and manage institution collections.</p>
                     </div>
 
-                    {/* Status Filter */}
-                    <div className="flex flex-col">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase mb-1">Collection Status</label>
-                        <select
-                            value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
-                            className="bg-white border border-gray-200 text-xs font-semibold text-slate-700 px-3 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                        >
-                            <option value="All">All Statuses</option>
-                            <option value="paid"> Fully Paid</option>
-                            <option value="partially_paid">Partially Paid</option>
-                            <option value="pending">Pending Logs</option>
-                            <option value="overdue">Overdue Defaulters</option>
-                            <option value="defaulters">All Defaulters Combine</option>
-                        </select>
+                    {/* Filters moved into hero for prominence */}
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-[9px] font-bold text-rose-200 uppercase tracking-wider">Filter Class</label>
+                            <select
+                                value={selectedClass}
+                                onChange={(e) => setSelectedClass(e.target.value)}
+                                className="bg-white/10 backdrop-blur-sm border border-white/10 text-xs font-bold text-white px-3 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-400 cursor-pointer"
+                            >
+                                {uniqueClasses.map(cls => (
+                                    <option key={cls} value={cls} className="text-slate-800">{cls === 'All' ? 'All Classes' : cls}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                            <label className="text-[9px] font-bold text-rose-200 uppercase tracking-wider">Collection Status</label>
+                            <select
+                                value={selectedStatus}
+                                onChange={(e) => setSelectedStatus(e.target.value)}
+                                className="bg-white/10 backdrop-blur-sm border border-white/10 text-xs font-bold text-white px-3 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-400 cursor-pointer"
+                            >
+                                <option value="All" className="text-slate-800">All Statuses</option>
+                                <option value="paid" className="text-slate-800">Fully Paid</option>
+                                <option value="partially_paid" className="text-slate-800">Partially Paid</option>
+                                <option value="pending" className="text-slate-800">Pending Logs</option>
+                                <option value="overdue" className="text-slate-800">Overdue Defaulters</option>
+                                <option value="defaulters" className="text-slate-800">All Defaulters Combine</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="relative grid grid-cols-3 gap-4 mt-8">
+                    <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3">
+                        <p className="text-[9px] font-bold text-rose-200 uppercase tracking-wider">Total Demanded</p>
+                        <p className="text-xl font-black text-white font-mono mt-0.5">₹{totalDemanded.toLocaleString('en-IN')}</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3">
+                        <p className="text-[9px] font-bold text-rose-200 uppercase tracking-wider">Total Cleared</p>
+                        <p className="text-xl font-black text-white font-mono mt-0.5">₹{totalCleared.toLocaleString('en-IN')}</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3">
+                        <p className="text-[9px] font-bold text-rose-200 uppercase tracking-wider">Defaulters</p>
+                        <p className="text-xl font-black text-white font-mono mt-0.5">{defaulterCount}</p>
                     </div>
                 </div>
             </div>
@@ -139,20 +156,21 @@ const PendingFee = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-100 text-gray-700 font-semibold">
                             {loading ? (
-                                <tr>
-                                    <td colSpan="7" className="px-6 py-12 text-center text-gray-400 italic">
-                                        Bhai live parameters calculate ho rhe hain... ⏳
-                                    </td>
-                                </tr>
+                                Array.from({ length: 4 }).map((_, i) => (
+                                    <tr key={i}>
+                                        <td colSpan="7" className="px-6 py-4">
+                                            <div className="h-4 w-full bg-slate-100 rounded animate-pulse"></div>
+                                        </td>
+                                    </tr>
+                                ))
                             ) : filteredData.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="px-6 py-12 text-center text-gray-400 italic">
+                                    <td colSpan="7" className="px-6 py-16 text-center text-gray-400 italic">
                                         Is category me koi records nahi mile bhai! 🎯
                                     </td>
                                 </tr>
                             ) : (
                                 filteredData.map((student) => {
-                                    // ✅ FIX: backend se aane wale sahi field names use kiye
                                     const totalBill = parseFloat(student.total_fee) || 0;
                                     const paid = parseFloat(student.total_paid) || 0;
                                     const balance = parseFloat(student.total_due) || 0;
@@ -160,7 +178,6 @@ const PendingFee = () => {
                                     const statusKey = (student.status || 'pending').toLowerCase();
                                     const badgeText = statusLabelMap[statusKey] || student.status;
 
-                                    // Dynamic Badge UI Logic
                                     let badgeStyle = "bg-amber-50 text-amber-700 border-amber-100";
                                     if (statusKey === 'paid') {
                                         badgeStyle = "bg-emerald-50 text-emerald-700 border-emerald-100";
@@ -175,7 +192,6 @@ const PendingFee = () => {
                                             <td className="px-6 py-4 font-mono text-gray-400">#{student.admission_number || student.student_id}</td>
                                             <td className="px-6 py-4 font-bold text-slate-900">{student.full_name}</td>
                                             <td className="px-6 py-4">
-                                                {/* ✅ FIX: ab section bhi combined dikhega, e.g. "NC - Sec A" */}
                                                 <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md text-[10px]">
                                                     {getClassLabel(student)}
                                                 </span>

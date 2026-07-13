@@ -5,7 +5,6 @@ const AttendanceReport = () => {
   const [reportData, setReportData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 🎯 Filter states — same pattern as PendingFee.jsx
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClass, setSelectedClass] = useState('All');
 
@@ -27,18 +26,15 @@ const AttendanceReport = () => {
     fetchAttendanceReport();
   }, []);
 
-  // Class + Section combined label helper (same convention used across the app)
   const getClassLabel = (item) =>
     item.class_name
       ? `${item.class_name}${item.section ? ' - Sec ' + item.section : ''}`
       : 'N/A';
 
-  // Unique class list for the dropdown
   const uniqueClasses = ['All', ...new Set(
     reportData.map(item => getClassLabel(item)).filter(label => label !== 'N/A')
   )];
 
-  // 🔄 Combined filter: search + class
   const filteredData = reportData.filter(row => {
     const matchesSearch =
       (row.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -49,7 +45,6 @@ const AttendanceReport = () => {
     return matchesSearch && matchesClass;
   });
 
-  // Executive summary counters — computed from filtered data so it reacts to filters too
   const totalTracked = filteredData.length;
   const shortageCount = filteredData.filter(s => {
     const total = s.total_classes || 0;
@@ -58,44 +53,48 @@ const AttendanceReport = () => {
     return pct < 75;
   }).length;
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50/50">
-        <div className="text-center space-y-2">
-          <div className="w-6 h-6 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-[11px] font-bold text-slate-500 tracking-wide">Compiling academic registry matrix...</p>
-        </div>
-      </div>
-    );
-  }
+  const avgAttendance = totalTracked > 0
+    ? Math.round(filteredData.reduce((sum, s) => {
+        const total = s.total_classes || 0;
+        const attended = s.attended_classes || 0;
+        return sum + (total > 0 ? (attended / total) * 100 : 0);
+      }, 0) / totalTracked)
+    : 0;
 
   return (
-    <div className="space-y-6 p-8 bg-slate-50/60 min-h-screen font-sans antialiased selection:bg-indigo-100">
+    <div className="space-y-6 p-6 bg-gradient-to-br from-slate-50 via-slate-50 to-indigo-50/40 min-h-screen font-sans antialiased">
 
-      {/* 👑 PREMIUM CAPTION ROW */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-200/60 pb-6 gap-4">
-        <div>
-          <span className="text-[10px] font-bold text-indigo-600 tracking-widest uppercase bg-indigo-50 px-2.5 py-1 rounded-full">Analytics Intelligence</span>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-2">Monthly Attendance Insights</h1>
-          <p className="text-xs font-medium text-slate-400 mt-0.5">Analyze student consistency and automatically flag low attendance defaulters live</p>
+      {/* 🎯 HERO HEADER */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-950 via-violet-900 to-indigo-900 p-8 shadow-xl">
+        <div className="absolute -top-16 -right-10 w-72 h-72 bg-violet-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 -left-10 w-72 h-72 bg-indigo-400/10 rounded-full blur-3xl"></div>
+
+        <div className="relative">
+          <span className="inline-block px-3 py-1 rounded-full bg-white/10 text-indigo-200 text-[10px] font-bold uppercase tracking-widest mb-3">
+            Analytics Intelligence
+          </span>
+          <h1 className="text-3xl font-black text-white tracking-tight">Monthly Attendance Insights</h1>
+          <p className="text-sm text-indigo-200/80 mt-1.5">Analyze student consistency and automatically flag low attendance defaulters live.</p>
         </div>
 
-        {/* Quick Insights Badges */}
-        <div className="flex items-center gap-3">
-          <div className="bg-white border border-slate-200/60 shadow-sm rounded-xl px-4 py-2 text-left">
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Audited</p>
-            <p className="text-sm font-black text-slate-800 font-mono mt-0.5">{totalTracked} Students</p>
+        <div className="relative grid grid-cols-3 gap-4 mt-8">
+          <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3">
+            <p className="text-[9px] font-bold text-indigo-200 uppercase tracking-wider">Total Audited</p>
+            <p className="text-xl font-black text-white font-mono mt-0.5">{totalTracked}</p>
           </div>
-          <div className="bg-white border border-slate-200/60 shadow-sm rounded-xl px-4 py-2 text-left">
-            <p className="text-[9px] font-bold text-rose-400 uppercase tracking-wider">Attendance Alerts</p>
-            <p className="text-sm font-black text-rose-600 font-mono mt-0.5">{shortageCount} Shortage</p>
+          <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3">
+            <p className="text-[9px] font-bold text-indigo-200 uppercase tracking-wider">Avg. Attendance</p>
+            <p className="text-xl font-black text-white font-mono mt-0.5">{avgAttendance}%</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3">
+            <p className="text-[9px] font-bold text-rose-300 uppercase tracking-wider">Shortage Alerts</p>
+            <p className="text-xl font-black text-white font-mono mt-0.5">{shortageCount}</p>
           </div>
         </div>
       </div>
 
-      {/* 🎯 FILTER TOOLBAR — search + class dropdown */}
+      {/* 🎯 FILTER TOOLBAR */}
       <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-4">
-        {/* Search */}
         <div className="relative flex-1">
           <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
@@ -109,7 +108,6 @@ const AttendanceReport = () => {
           />
         </div>
 
-        {/* Class Dropdown Filter */}
         <div className="flex flex-col gap-1 sm:w-56">
           <select
             value={selectedClass}
@@ -123,7 +121,7 @@ const AttendanceReport = () => {
         </div>
       </div>
 
-      {/* 📊 LUXURY DATA SHEET TABLE */}
+      {/* 📊 DATA SHEET TABLE */}
       <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_4px_20px_-4px_rgba(148,163,184,0.08)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
@@ -139,7 +137,15 @@ const AttendanceReport = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700 font-semibold">
-              {filteredData.length === 0 ? (
+              {loading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i}>
+                    <td colSpan="7" className="px-6 py-4.5">
+                      <div className="h-4 w-full bg-slate-100 rounded animate-pulse"></div>
+                    </td>
+                  </tr>
+                ))
+              ) : filteredData.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="px-6 py-16 text-center text-slate-400 italic font-medium">
                     Is filter ke hisab se koi records nahi mile bhai! 🎯
@@ -156,7 +162,7 @@ const AttendanceReport = () => {
                     ? "bg-rose-50 text-rose-700 border-rose-200/70"
                     : "bg-emerald-50 text-emerald-700 border-emerald-200/70";
                   let percentageColor = isShortage ? "text-rose-600" : "text-slate-800";
-                  let progressFill = isShortage ? "bg-rose-500" : "bg-emerald-500";
+                  let progressFill = isShortage ? "bg-rose-500" : "bg-indigo-500";
 
                   return (
                     <tr key={row.student_id} className="hover:bg-slate-50/40 transition-all group">
@@ -170,7 +176,6 @@ const AttendanceReport = () => {
                         </div>
                       </td>
 
-                      {/* ✅ NEW: Class column */}
                       <td className="px-6 py-4.5">
                         <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md text-[10px] font-bold">
                           {getClassLabel(row)}
