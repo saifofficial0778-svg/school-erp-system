@@ -229,7 +229,7 @@ const StudentForm = () => {
 
       {/* Header */}
       <div className="bg-purple-900 px-6 py-5 flex items-center gap-4">
-        <button onClick={() => navigate('/student')} className="text-white text-xl">←</button>
+        <button onClick={() => navigate('/students')} className="text-white text-xl">←</button>
         <h1 className="text-xl font-bold text-white tracking-tight">
           {studentId ? 'Edit Student Profile' : 'Student Enrollment'}
         </h1>
