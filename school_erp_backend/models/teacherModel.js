@@ -212,7 +212,14 @@ const Teacher = {
         return {
             profile: profileRows[0]
         };
-    }
+    },
+    getTeacherIdByUserId: async (userId, schoolId) => {
+    const [rows] = await pool.query(
+        `SELECT id FROM teachers WHERE user_id = ? AND school_id = ?`,
+        [userId, schoolId]
+    );
+    return rows[0]?.id || null;
+}
 };
 
 module.exports = Teacher;

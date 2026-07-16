@@ -69,6 +69,16 @@ exports.getStudentsByClass = catchAsync(async (req, res, next) => {
     const classId = req.params.id;
     const schoolId = req.user.schoolId;
 
+    // ✅ NEW: agar Teacher hai, to check karo ye uski hi assigned class hai
+    if (req.user.role === 'teacher') {
+        const teacherId = await Teacher.getTeacherIdByUserId(req.user.userId, schoolId);
+        const classInfo = await ClassModel.getClassById(classId, schoolId);
+
+        if (!classInfo || classInfo.teacher_id !== teacherId) {
+            return next(new AppError("Bhai, ye tumhari assigned class nahi hai!", 403));
+        }
+    }
+
     const students = await ClassModel.getStudentsByClass(classId, schoolId);
 
     res.status(200).json({

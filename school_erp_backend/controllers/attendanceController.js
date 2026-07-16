@@ -24,20 +24,22 @@ exports.getAttendanceByDate = async (req, res) => {
 // 🔴 2. MARK NEW ATTENDANCE WITH SQL DB CONSTRAINT HANDLING
 exports.markAttendance = async (req, res) => {
     try {
-          const schoolId = req.user.schoolId;
-        const {studentId, date, status, remarks } = req.body;
+        // 🔑 Token se safe tarike se data nikala
+        const schoolId = req.user.schoolId;
+        const markedById = req.userId; // Kis teacher ne lagayi, tracking ke liye (Optional, par interview me kaam aayega)
 
-        // 🛡️ Safe-guard 1: Check mandatory fields
-        if (!schoolId || !studentId || !date || !status) {
+        const { studentId, date, status, remarks } = req.body;
+
+        // 🛡️ Safe-guard 1: Check mandatory fields (Yahan se schoolId hata diya kyunki wo body se nahi, token se aa raha hai)
+        if (!studentId || !date || !status) {
             return res.status(400).json({
                 success: false,
-                message: "Bhai, schoolId, studentId, date, aur status bharna mandatory hai!"
+                message: "Bhai, studentId, date, aur status bharna mandatory hai!"
             });
         }
 
         const inputDate = new Date(date);
         const today = new Date();
-        // Time elements ko reset kar rahe hain taaki sirf pure date compare ho
         today.setHours(0, 0, 0, 0);
         inputDate.setHours(0, 0, 0, 0);
 
@@ -57,9 +59,15 @@ exports.markAttendance = async (req, res) => {
             });
         }
 
+        // 🛡️ [INTERVIEW SPECIAL ADDITION]: Cross-School Student Data Leak Prevention
+        // Tumhe SQL layer par ya yahan check karna chahiye ki kya studentId usi schoolId se belong karta hai?
+        // Maan lete hain tumhari model me aisa query function hai:
+        // const isOurStudent = await Student.verifySchool(parseInt(studentId), parseInt(schoolId));
+        // if (!isOurStudent) return res.status(403).json({ message: "Bhai dusre school ke bache ki attendance kyu laga rhe ho?" });
+
         // 🎯 Save directly into the SQL Table
         const savedRecord = await Attendance.markSingle(
-            parseInt(schoolId),
+            parseInt(schoolId), // Token wala safe schoolId
             parseInt(studentId),
             date,
             status.toLowerCase(),
@@ -75,7 +83,7 @@ exports.markAttendance = async (req, res) => {
     } catch (error) {
         console.error("Attendance POST fail:", error.message);
 
-        // 🛡️ Safe-guard 3: CATCH UNIQUE CONSTRAINT (`unique_student_date`) FROM MYSQL DYNAMICALLY
+        // 🛡️ Safe-guard 3: CATCH UNIQUE CONSTRAINT
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(400).json({
                 success: false,
@@ -107,13 +115,13 @@ exports.getAttendancePieData = async (req, res) => {
 exports.getAttendanceReport = async (req, res) => {
     try {
         const schoolId = req.user.schoolId;
-        
+
         // ✅ FIXED: AttendanceModel ki jagah 'Attendance' variable use kiya jo top par import hai
         const rawRows = await Attendance.fetchMonthlyReport(schoolId);
-        
+
         const studentMap = {};
 
-       rawRows.forEach(row => {
+        rawRows.forEach(row => {
             const sId = row.student_id;
             if (!sId) return;
 
@@ -138,7 +146,7 @@ exports.getAttendanceReport = async (req, res) => {
         });
 
         const finalReportData = Object.values(studentMap);
-        
+
         return res.status(200).json({
             success: true,
             count: finalReportData.length,

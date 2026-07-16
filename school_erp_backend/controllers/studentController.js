@@ -97,6 +97,12 @@ exports.deleteStudent = catchAsync(async (req, res, next) => {
 
 exports.getStudentCompleteProfile = catchAsync(async (req, res, next) => {
     const { studentId } = req.params;
+    if (req.user.role === 'Student' && req.user.id !== studentId) {
+            return res.status(403).json({ 
+                success: false, 
+                message: "Bhai, chalaaki nahi! Aap sirf apni profile dekh sakte ho, kisi aur ki nahi." 
+            });
+        }
     const schoolId = req.user.schoolId;
 
     // Call model with matching sequence

@@ -97,7 +97,28 @@ if (feeRow.length > 0) {
             [classId, schoolId]
         );
         return rows;
-    }
+    },
+
+    // Class ka poora record uthao (teacher_id samet) — ownership check ke liye
+getClassById: async (classId, schoolId) => {
+    const [rows] = await pool.query(
+        `SELECT * FROM classes WHERE id = ? AND school_id = ?`,
+        [classId, schoolId]
+    );
+    return rows[0] || null;
+},
+
+// Student abhi kis class me hai (active mapping) — attendance ownership check ke liye
+getStudentActiveClass: async (studentId, schoolId) => {
+    const [rows] = await pool.query(
+        `SELECT c.id, c.teacher_id 
+         FROM student_class_mapping scm
+         JOIN classes c ON scm.class_id = c.id
+         WHERE scm.student_id = ? AND scm.school_id = ? AND scm.status = 'active'`,
+        [studentId, schoolId]
+    );
+    return rows[0] || null;
+}
 };
 
 module.exports = ClassModel;

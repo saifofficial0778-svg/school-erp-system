@@ -2,18 +2,21 @@ const express = require('express');
 const router = express.Router();
 const classController = require('../controllers/classController');
 const verifyToken = require('../middlewares/authMiddleware');
+const authorizeRoles = require('../middlewares/rbacMiddleware');
 
-// 🛡️ Pure routes token se protected hain
+// 🛡️ Har request ke liye user ka logged-in hona zaroori hai (Token Check Global)
 router.use(verifyToken); 
 
-// 1. Class Create Endpoint (Frontend ke API.post('/classes/create') se mapped)
-router.post('/create', classController.addClass);
+// 1. Class Create Endpoint (Sirf Admin naya class bana sakta hai)
+router.post('/create', authorizeRoles('admin'), classController.addClass);
 
-// 2. Dropdown Meta-data Fetch (Frontend ke API.get('/classes/meta-data') se mapped)
-router.get('/meta-data', classController.getClassDropdownData);
+// 2. Dropdown Meta-data Fetch (Admin aur Teacher dono ko chahiye list dekhne ke liye)
+router.get('/meta-data', authorizeRoles('admin', 'teacher'), classController.getClassDropdownData);
 
-// 3. Student mapping (Frontend ke API.post('/classes/assign-student') se mapped)
-router.post('/assign-student', classController.assignStudent);
-router.get('/:id/students', classController.getStudentsByClass);
+// 3. Student mapping (Admin class assign karega ya Teacher bhi kar sakta hai dependent on your ERP policy)
+router.post('/assign-student', authorizeRoles('admin', 'teacher'), classController.assignStudent);
+
+// 4. Get Students by Class (Attendance lene ke liye Teacher ko access chahiye hi chahiye!)
+router.get('/:id/students', authorizeRoles('admin', 'teacher'), classController.getStudentsByClass);
 
 module.exports = router;
