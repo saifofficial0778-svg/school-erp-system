@@ -2,7 +2,7 @@ const express=require('express')
 const router=express.Router();
 const attendanceController=require('../controllers/attendanceController');
 const verifyToken = require('../middlewares/authMiddleware');
-const authorizeRoles = require('../middlewares/rbacMiddleware');
+const authorizeRoles = require('../middlewares/authorizeRoles');
 
 router.use(verifyToken,authorizeRoles('admin','teacher')); 
 

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const classController = require('../controllers/classController');
 const verifyToken = require('../middlewares/authMiddleware');
-const authorizeRoles = require('../middlewares/rbacMiddleware');
+const authorizeRoles = require('../middlewares/authorizeRoles');
 
 // 🛡️ Har request ke liye user ka logged-in hona zaroori hai (Token Check Global)
 router.use(verifyToken); 

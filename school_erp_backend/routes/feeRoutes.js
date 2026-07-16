@@ -2,7 +2,7 @@ const express=require('express')
 const router=express.Router();
 const feeController=require('../controllers/feeController');
 const verifyToken = require('../middlewares/authMiddleware');
-const authorizeRoles = require('../middlewares/rbacMiddleware');
+const authorizeRoles = require('../middlewares/authorizeRoles');
 
 router.use(verifyToken,authorizeRoles('admin')); 
 router.get('/',feeController.getAllFees);

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const teacherController = require('../controllers/teacherController')
 const verifyToken = require('../middlewares/authMiddleware');
-const authorizeRoles = require('../middlewares/rbacMiddleware');
+const authorizeRoles = require('../middlewares/authorizeRoles');
 
 // 🛡️ Sabhi routes ke liye login mandatory hai (Global Auth)
 router.use(verifyToken); 
