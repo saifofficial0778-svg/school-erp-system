@@ -127,3 +127,19 @@ exports.getTeacherCompleteProfile = catchAsync(async (req, res, next) => {
         data: allData
     });
 });
+
+exports.getMyProfile = catchAsync(async (req, res, next) => {
+    const schoolId = req.user.schoolId;
+    const teacherId = await Teacher.getTeacherIdByUserId(req.user.userId, schoolId);
+
+    if (!teacherId) {
+        return next(new AppError('Bhai, tumhara teacher profile record nahi mila!', 404));
+    }
+
+    const allData = await Teacher.getTeacherCompleteProfile(schoolId, teacherId);
+
+    res.status(200).json({
+        success: true,
+        data: allData
+    });
+});

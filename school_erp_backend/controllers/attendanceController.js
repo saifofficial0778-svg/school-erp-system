@@ -115,8 +115,6 @@ exports.getAttendancePieData = async (req, res) => {
 exports.getAttendanceReport = async (req, res) => {
     try {
         const schoolId = req.user.schoolId;
-
-        // ✅ FIXED: AttendanceModel ki jagah 'Attendance' variable use kiya jo top par import hai
         const rawRows = await Attendance.fetchMonthlyReport(schoolId);
 
         const studentMap = {};
@@ -130,8 +128,9 @@ exports.getAttendanceReport = async (req, res) => {
                     student_id: sId,
                     full_name: row.student_name || 'Unknown Student',
                     admission_number: row.admission_no || sId,
-                    class_name: row.class_name || null,      // ✅ NEW
-                    section: row.section || null,             // ✅ NEW
+                    class_name: row.class_name || null,
+                    section: row.section || null,
+                    teacher_id: row.teacher_id || null,   // ✅ NEW: filter ke liye chahiye
                     total_classes: 0,
                     attended_classes: 0
                 };
@@ -145,7 +144,17 @@ exports.getAttendanceReport = async (req, res) => {
             }
         });
 
-        const finalReportData = Object.values(studentMap);
+        let finalReportData = Object.values(studentMap);
+
+        // ✅ NEW: agar Teacher hai, sirf apni assigned class ke students dikhao
+        if (req.user.role === 'teacher') {
+            const Teacher = require('../models/teacherModel');
+            const teacherId = await Teacher.getTeacherIdByUserId(req.user.userId, schoolId);
+            finalReportData = finalReportData.filter(s => s.teacher_id === teacherId);
+        }
+
+        // teacher_id field ko response se clean kar do (frontend ko iski zaroorat nahi)
+        finalReportData = finalReportData.map(({ teacher_id, ...rest }) => rest);
 
         return res.status(200).json({
             success: true,
@@ -157,4 +166,5 @@ exports.getAttendanceReport = async (req, res) => {
         console.error("Critical Report Controller Crash Log:", error.message);
         return res.status(500).json({ success: false, message: error.message });
     }
+
 };

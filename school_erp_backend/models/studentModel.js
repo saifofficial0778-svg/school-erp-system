@@ -218,7 +218,14 @@ const Student = {
             feeLogs: feeLogs,                    // ✅ sahi naam
             attendance: attendanceRows
         };
-    }
+    },
+    getStudentIdByUserId: async (userId, schoolId) => {
+    const [rows] = await pool.query(
+        `SELECT id FROM students WHERE user_id = ? AND school_id = ?`,
+        [userId, schoolId]
+    );
+    return rows[0]?.id || null;
+}
 };
 
 module.exports = Student;

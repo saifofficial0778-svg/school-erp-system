@@ -18,7 +18,7 @@ import TeacherForm from './pages/TeacherForm';
 import Teacher from './pages/Teacher';
 import TeacherView from './pages/TeacherView';
 import ClassManagement from './pages/ClassManagement';
-
+import RoleRoute from './components/RoleRoute'; // ✅ NEW: role-based access guard
 
 // 🛡️ 1. GUEST GUARD: Logged in users ko public matrix se bahar rakhega
 const GuestRoute = ({ children }) => {
@@ -44,7 +44,7 @@ function AppContent() {
   return (
     <Router>
       <Routes>
-        {/* 🟢 1. SINGLE ROOT PATH: Pehli baar kholne par sirf aur sirf LandingPage khulega */}
+        {/* 🟢 1. SINGLE ROOT PATH */}
         <Route path="/" element={<LandingPage />} />
 
         {/* 📋 2. PUBLIC/GUEST PAGES */}
@@ -74,23 +74,56 @@ function AppContent() {
             </ProtectedRoute>
           }
         >
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/students" element={<Student />} />
-          <Route path="/settings" element={<Setting />} />
-          <Route path="/fees" element={<FeeManagement />} />
-          <Route path="/fee-collection" element={<FeeCollection />} />
-          <Route path="/pending-fees" element={<PendingFees />} />
-          <Route path="/attendance" element={<Attendance />} />
-          <Route path="/attendance-report" element={<AttendanceReport />} />
-          <Route path="/student/new" element={<StudentForm />} />
-          <Route path="/student/profile-view" element={<StudentView />} />
-          <Route path="/teacher" element={<Teacher />} />
-          <Route path="/teacher/new" element={<TeacherForm />} />
-          <Route path="/teacher/profile-view" element={<TeacherView />} />
-          <Route path="/classes" element={<ClassManagement />} />
+          {/* --- ADMIN ONLY --- */}
+          <Route path="/dashboard" element={
+            <RoleRoute allowed={['admin']}><Dashboard /></RoleRoute>
+          } />
+          <Route path="/students" element={
+            <RoleRoute allowed={['admin']}><Student /></RoleRoute>
+          } />
+          <Route path="/settings" element={
+            <RoleRoute allowed={['admin']}><Setting /></RoleRoute>
+          } />
+          <Route path="/fees" element={
+            <RoleRoute allowed={['admin']}><FeeManagement /></RoleRoute>
+          } />
+          <Route path="/fee-collection" element={
+            <RoleRoute allowed={['admin']}><FeeCollection /></RoleRoute>
+          } />
+          <Route path="/pending-fees" element={
+            <RoleRoute allowed={['admin']}><PendingFees /></RoleRoute>
+          } />
+          <Route path="/student/new" element={
+            <RoleRoute allowed={['admin']}><StudentForm /></RoleRoute>
+          } />
+          <Route path="/teacher" element={
+            <RoleRoute allowed={['admin']}><Teacher /></RoleRoute>
+          } />
+          <Route path="/teacher/new" element={
+            <RoleRoute allowed={['admin']}><TeacherForm /></RoleRoute>
+          } />
+          <Route path="/classes" element={
+            <RoleRoute allowed={['admin']}><ClassManagement /></RoleRoute>
+          } />
+
+          {/* --- ADMIN + TEACHER --- */}
+          <Route path="/attendance" element={
+            <RoleRoute allowed={['admin', 'teacher']}><Attendance /></RoleRoute>
+          } />
+          <Route path="/attendance-report" element={
+            <RoleRoute allowed={['admin', 'teacher']}><AttendanceReport /></RoleRoute>
+          } />
+          <Route path="/teacher/profile-view" element={
+            <RoleRoute allowed={['admin', 'teacher']}><TeacherView /></RoleRoute>
+          } />
+
+          {/* --- ADMIN + STUDENT --- */}
+          <Route path="/student/profile-view" element={
+            <RoleRoute allowed={['admin', 'student']}><StudentView /></RoleRoute>
+          } />
         </Route>
 
-        {/* 🚨 4. FALLBACK ROUTE: Kuch galat mila toh user status ke mutabik navigate karo */}
+        {/* 🚨 4. FALLBACK ROUTE */}
         <Route path="*" element={<Navigate to={token ? "/dashboard" : "/"} replace />} />
       </Routes>
     </Router>

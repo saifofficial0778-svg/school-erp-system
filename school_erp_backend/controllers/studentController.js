@@ -117,3 +117,19 @@ exports.getStudentCompleteProfile = catchAsync(async (req, res, next) => {
         data: allData
     });
 });
+
+exports.getMyProfile = catchAsync(async (req, res, next) => {
+    const schoolId = req.user.schoolId;
+    const studentId = await Student.getStudentIdByUserId(req.user.userId, schoolId);
+
+    if (!studentId) {
+        return next(new AppError('Bhai, tumhara student profile record nahi mila!', 404));
+    }
+
+    const allData = await Student.getStudentCompleteProfile(schoolId, studentId);
+
+    res.status(200).json({
+        success: true,
+        data: allData
+    });
+});

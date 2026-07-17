@@ -10,10 +10,14 @@ const StudentView = () => {
   const [data, setData] = useState({ profile: null, feeSummary: null, feeLogs: [], attendance: [] });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+ useEffect(() => {
     const fetchFullData = async () => {
       try {
-        const res = await API.get(`/students/${studentId}/profile-view`);
+        // ✅ NEW: id URL me nahi hai matlab student apni profile dekh raha hai
+        const endpoint = studentId 
+          ? `/students/${studentId}/profile-view` 
+          : `/students/me/profile-view`;
+        const res = await API.get(endpoint);
         if (res.data.success) {
           setData(res.data.data);
         }
@@ -23,9 +27,8 @@ const StudentView = () => {
         setLoading(false);
       }
     };
-    if (studentId) fetchFullData();
-  }, [studentId]);
-
+    fetchFullData(); // ✅ ab studentId na ho tab bhi chalega
+}, [studentId]);
   const getInitials = (name = '') =>
     name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
 

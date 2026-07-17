@@ -14,7 +14,9 @@ router.get('/', authorizeRoles('admin', 'teacher'), studentController.getAllStud
 router.get('/:studentId', authorizeRoles('admin', 'teacher'), studentController.getStudentById);
 
 // 3. Complete Profile View (Admin toh dekh hi sakta hai, aur Student khud bhi dekh sakta hai!)
-router.get('/:studentId/profile-view', authorizeRoles('admin', 'student'), studentController.getStudentCompleteProfile);
+router.get('/:studentId/profile-view', authorizeRoles('admin'), studentController.getStudentCompleteProfile);
+
+router.get('/me/profile-view', authorizeRoles('student'), studentController.getMyProfile);
 
 // 4. Create, Update, Delete (Yeh core operations sirf aur sirf ADMIN kar sakta hai)
 router.post('/', authorizeRoles('admin'), studentController.createStudent);

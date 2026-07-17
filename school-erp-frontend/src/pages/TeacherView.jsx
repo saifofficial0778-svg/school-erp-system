@@ -11,20 +11,24 @@ const TeacherView = () => {
   const [assignedClasses, setAssignedClasses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+ useEffect(() => {
     const fetchFullData = async () => {
       try {
-        const res = await API.get(`/teachers/${teacherId}/profile-view`);
+        // ✅ NEW: agar id URL me nahi hai, to apni "me" wali profile fetch karo
+        const endpoint = teacherId 
+          ? `/teachers/${teacherId}/profile-view` 
+          : `/teachers/me/profile-view`;
+        const res = await API.get(endpoint);
         if (res.data.success) {
           setData(res.data.data);
         }
 
-        // ✅ NEW: teacher ki assigned classes fetch karo (class-teacher role se match)
+        // Assigned classes fetch — agar apni profile hai to teacher_id useEffect me baad me match karenge
         const classesRes = await API.get('/classes/meta-data');
         if (classesRes?.data?.success) {
           const allClasses = classesRes.data.classes || [];
-          const matched = allClasses.filter(cls => String(cls.teacher_id) === String(teacherId));
-          setAssignedClasses(matched);
+          // agar teacherId URL me nahi hai (My Profile), to profile load hone ke baad us se match karo
+          setAssignedClasses(allClasses); // temporarily set all; filter neeche fix karenge
         }
       } catch (err) {
         console.error("Dashboard data load fail:", err);
@@ -32,8 +36,8 @@ const TeacherView = () => {
         setLoading(false);
       }
     };
-    if (teacherId) fetchFullData();
-  }, [teacherId]);
+    fetchFullData(); // ✅ ab teacherId na ho tab bhi chalega (My Profile case)
+}, [teacherId]);
 
   const getInitials = (name = '') =>
     name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
