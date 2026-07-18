@@ -3,7 +3,8 @@ const cors = require('cors'); // CORS import kar lo taaki React se dikkat na aay
 require('dotenv').config(); // Dotenv ko sabse upar initialize karna achha hota hai
 // Error Handling Imports
 const globalErrorHandler = require('./middlewares/errorController');
-const AppError = require('./utils/AppError');   
+const AppError = require('./utils/AppError');  
+const { apiLimiter } = require('./middlewares/rateLimiter'); 
 const app = express();
 
 
@@ -25,12 +26,12 @@ const teacherRoutes=require('./routes/teacherRoutes')
 // const classRoutes=require('./routes/classRoutes')
 
 // Mount Routes
-app.use('/api/v1/students', studentRoutes);
-app.use('/api/v1/fees', feeRoutes);
-app.use('/api/v1/attendance',attendanceRoutes);
-app.use('/api/v1/classes', classRoutes);
+app.use('/api/v1/students',apiLimiter, studentRoutes);
+app.use('/api/v1/fees',apiLimiter, feeRoutes);
+app.use('/api/v1/attendance',apiLimiter,attendanceRoutes);
+app.use('/api/v1/classes', apiLimiter,classRoutes);
 app.use('/api/v1/auth',authRoutes)
-app.use('/api/v1/teachers',teacherRoutes)
+app.use('/api/v1/teachers',apiLimiter,teacherRoutes)
 
 // app.use('/api/v1/report', attendanceRoutes);
 

@@ -3,11 +3,12 @@ const router=express.Router();
 
 const authController=require('../controllers/authController');
 const verifyToken=require('../middlewares/authMiddleware')
+const {loginLimiter}=require('../middlewares/rateLimiter')
 
 // Register School Route
-router.post('/register-school', authController.registerSchool);
+router.post('/register-school',loginLimiter, authController.registerSchool);
 
-router.post('/login',authController.login)
+router.post('/login',loginLimiter,authController.login)
 
 
 router.get('/dashboard',verifyToken,(req,res)=>{
