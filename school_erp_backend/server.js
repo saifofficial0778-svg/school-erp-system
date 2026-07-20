@@ -2,12 +2,14 @@ const express = require('express');
 const cors = require('cors'); // CORS import kar lo taaki React se dikkat na aaye
 require('dotenv').config(); // Dotenv ko sabse upar initialize karna achha hota hai
 // Error Handling Imports
+const helmet = require('helmet');
 const globalErrorHandler = require('./middlewares/errorController');
 const AppError = require('./utils/AppError');  
 const { apiLimiter } = require('./middlewares/rateLimiter'); 
 const app = express();
 
-
+// Security headers set karne ke liye top par lagao (routes se pehle)
+app.use(helmet());
 
 // Middlewares
 app.use(cors({

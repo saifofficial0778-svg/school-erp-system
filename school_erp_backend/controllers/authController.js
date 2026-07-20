@@ -10,14 +10,20 @@ exports.login = async (req, res) => {
         const [users] = await db.execute('SELECT * FROM users WHERE email = ?', [email])
 
         if (users.length === 0) {
-            return res.status(401).json({ message: "Invalid Email ya Password, bhai!" })
+            return res.status(401).json({ 
+                message: "Invalid Email ya Password, bhai!" , 
+                remainingAttempts: req.rateLimit ? req.rateLimit.remaining : null
+            })
         }
 
         const user = users[0];
 
         const isPasswordCorrect = await bcrypt.compare(password, user.password)
         if (!isPasswordCorrect) {
-            return res.status(401).json({ message: "Invalid Email ya Password, bhai!" })
+            return res.status(401).json({
+                 message: "Invalid Email ya Password, bhai!",
+                  remainingAttempts: req.rateLimit ? req.rateLimit.remaining : null
+            })
         }
 
         const payload = {
