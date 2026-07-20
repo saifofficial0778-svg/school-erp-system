@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 🏢 BASE URL CONFIGURATION (Railway Production Hub)
 const API = axios.create({
-  baseURL: 'https://school-erp-system-production.up.railway.app/api/v1/',
+  baseURL: 'http://localhost:5000/api/v1/',
   headers: {
     'Content-Type': 'application/json',
   },

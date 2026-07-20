@@ -3,13 +3,18 @@ const rateLimit=require('express-rate-limit')
 const loginLimiter=rateLimit({
     windowMs:15*60*1000,
     max:5,
-    message:{
-        status:429,
-        success:false,
-        error:"Too many login attempts. Bhai 15 mins baad try karna."
-    },
     standardHeaders:true,
     legacyHeaders:false,
+    handler: (req, res) => {
+        // req.rateLimit me sara time aur remaining info hoti hai
+        const timeRemainingInSeconds = Math.ceil((req.rateLimit.resetTime - Date.now()) / 1000);
+        
+        return res.status(429).json({
+            success: false,
+            message: `Bohat saare attempts ho gaye! Dubara try karein.`,
+            retryAfter: timeRemainingInSeconds // 🔥 Kitne seconds baad try karna hai
+        });
+    }
 });
 
 const apiLimiter = rateLimit({
