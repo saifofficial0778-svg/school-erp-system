@@ -53,125 +53,133 @@ const FeesManagement = () => {
   const totalDue = feeRecords.reduce((sum, r) => sum + (parseFloat(r.total_due) || 0), 0);
   const fullyPaidCount = feeRecords.filter(r => r.status === 'paid').length;
 
+  const statusLabel = { paid: 'Paid', partial: 'Partial', pending: 'Pending' };
+
   return (
-    <div className="space-y-6 p-6 bg-gradient-to-br from-slate-50 via-slate-50 to-emerald-50/40 min-h-screen font-sans">
+    <div className="min-h-screen bg-slate-50 font-sans">
 
-      {/* 🎯 HERO HEADER */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-teal-900 p-8 shadow-xl">
-        <div className="absolute -top-16 -right-10 w-72 h-72 bg-emerald-500/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-20 -left-10 w-72 h-72 bg-teal-400/10 rounded-full blur-3xl"></div>
-
-        <div className="relative">
-          <span className="inline-block px-3 py-1 rounded-full bg-white/10 text-emerald-200 text-[10px] font-bold uppercase tracking-widest mb-3">
-            Accounts Desk Terminal
-          </span>
-          <h1 className="text-3xl font-black text-white tracking-tight">Fee Collection Ledger</h1>
-          <p className="text-sm text-emerald-200/80 mt-1.5">Manage student fees, tracking logs, and cash counters live.</p>
+      {/* Formal top bar */}
+      <div className="bg-white border-b border-slate-300 px-6 py-4 flex items-center justify-between">
+        <div>
+          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Accounts / Fee Ledger</p>
+          <h1 className="text-lg font-bold text-slate-900">Fee Collection Ledger</h1>
         </div>
-
-        <div className="relative grid grid-cols-3 gap-4 mt-8">
-          <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3">
-            <p className="text-[9px] font-bold text-emerald-200 uppercase tracking-wider">Collected</p>
-            <p className="text-xl font-black text-white font-mono mt-0.5">₹{totalCollected.toLocaleString('en-IN')}</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3">
-            <p className="text-[9px] font-bold text-emerald-200 uppercase tracking-wider">Outstanding</p>
-            <p className="text-xl font-black text-white font-mono mt-0.5">₹{totalDue.toLocaleString('en-IN')}</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3">
-            <p className="text-[9px] font-bold text-emerald-200 uppercase tracking-wider">Fully Paid</p>
-            <p className="text-xl font-black text-white font-mono mt-0.5">{fullyPaidCount}</p>
-          </div>
+        <div className="text-right text-xs text-slate-400">
+          <p>As on</p>
+          <p className="font-semibold text-slate-700">{new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
         </div>
       </div>
 
-      {/* Search */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-        <div className="relative">
-          <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
-          </svg>
+      <div className="max-w-7xl mx-auto p-6 space-y-5">
+
+        {/* Summary strip — bordered table cells, not glass cards */}
+        <div className="grid grid-cols-3 border border-slate-300 bg-white divide-x divide-slate-300">
+          <div className="px-6 py-4">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Total Collected</p>
+            <p className="text-xl font-bold text-slate-900 font-mono mt-1">₹{totalCollected.toLocaleString('en-IN')}</p>
+          </div>
+          <div className="px-6 py-4">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Outstanding</p>
+            <p className="text-xl font-bold text-slate-900 font-mono mt-1">₹{totalDue.toLocaleString('en-IN')}</p>
+          </div>
+          <div className="px-6 py-4">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Fully Settled Accounts</p>
+            <p className="text-xl font-bold text-slate-900 font-mono mt-1">{fullyPaidCount}</p>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="bg-white border border-slate-300">
           <input
             type="text"
-            placeholder="Search via Name or Admission Key..."
+            placeholder="Search via Name or Admission Number..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-xs bg-slate-50 border border-gray-200 pl-10 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium transition-all text-slate-700"
+            className="w-full text-sm px-4 py-3 focus:outline-none text-slate-700 placeholder:text-slate-400"
           />
         </div>
-      </div>
 
-      {/* Main Datatable Wrapper */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr className="bg-slate-50 text-gray-400 font-black tracking-wider uppercase border-b border-gray-100">
-              <th className="px-6 py-4">Student Identity Profile</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Cleared / Total Fees</th>
-              <th className="px-6 py-4">Outstanding Balance</th>
-              <th className="px-6 py-4 text-center">Operation Desk</th>
-            </tr>
-          </thead>
-
-          <tbody className="divide-y divide-gray-100 text-gray-700 font-semibold">
-            {loading ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <tr key={i}>
-                  <td colSpan="5" className="px-6 py-4">
-                    <div className="h-4 w-full bg-slate-100 rounded animate-pulse"></div>
-                  </td>
-                </tr>
-              ))
-            ) : filteredRecords.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="px-6 py-16 text-center text-gray-400 font-medium italic">
-                  Bhai database me koi real record match nahi mila!
-                </td>
+        {/* Ledger table */}
+        <div className="bg-white border border-slate-300">
+          <table className="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr className="bg-slate-100 text-slate-500 font-semibold uppercase text-[11px] tracking-wide border-b border-slate-300">
+                <th className="px-5 py-3 border-r border-slate-200">Student</th>
+                <th className="px-5 py-3 border-r border-slate-200">Status</th>
+                <th className="px-5 py-3 border-r border-slate-200">Cleared / Total</th>
+                <th className="px-5 py-3 border-r border-slate-200">Balance Due</th>
+                <th className="px-5 py-3 text-center">Action</th>
               </tr>
-            ) : (
-              filteredRecords.map((record, idx) => {
-                const balance = parseFloat(record.total_due || 0);
-                return (
-                  <tr key={record.student_id || idx} className="hover:bg-slate-50/40 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-black text-[11px] shrink-0">
-                          {getInitials(record.full_name)}
-                        </div>
-                        <div>
-                          <p className="font-bold text-gray-900">{record.full_name}</p>
-                          <p className="text-[10px] text-gray-400 font-medium font-mono mt-0.5">Adm: #{record.admission_number || 'N/A'}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`font-bold px-2.5 py-0.5 rounded-full uppercase text-[9px] ${record.status === 'paid' ? 'bg-emerald-50 text-emerald-600' : record.status === 'partial' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
-                        }`}>{record.status}</span>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-slate-600">
-                      ₹{parseFloat(record.total_paid || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} /
-                      <span> ₹{parseFloat(record.total_fee || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                    </td>
-                    <td className={`px-6 py-4 font-mono font-bold ${balance > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                      ₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="px-6 py-3 text-center">
-                      <button
-                        onClick={() => redirectToCollectionPage(record)}
-                        disabled={balance <= 0 && record.status === 'paid'}
-                        className={`text-white text-xs font-bold px-4 py-1.5 rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer ${balance <= 0 && record.status === 'paid' ? 'bg-slate-300 pointer-events-none shadow-none' : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700'
-                          }`}
-                      >
-                        {balance <= 0 && record.status === 'paid' ? "Settled ✓" : "Collect Fee"}
-                      </button>
+            </thead>
+
+            <tbody className="divide-y divide-slate-200 text-slate-700">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i}>
+                    <td colSpan="5" className="px-5 py-4">
+                      <div className="h-4 w-full bg-slate-100 animate-pulse"></div>
                     </td>
                   </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                ))
+              ) : filteredRecords.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="px-5 py-16 text-center text-slate-400 italic">
+                    No matching records found in the ledger.
+                  </td>
+                </tr>
+              ) : (
+                filteredRecords.map((record, idx) => {
+                  const balance = parseFloat(record.total_due || 0);
+                  const statusKey = (record.status || 'pending').toLowerCase();
+                  return (
+                    <tr key={record.student_id || idx} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-5 py-3.5 border-r border-slate-100">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full border border-slate-300 flex items-center justify-center text-slate-600 font-bold text-[11px] shrink-0">
+                            {getInitials(record.full_name)}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-slate-900">{record.full_name}</p>
+                            <p className="text-[11px] text-slate-400 font-mono">Adm: #{record.admission_number || 'N/A'}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5 border-r border-slate-100">
+                        <span className={`inline-block border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                          statusKey === 'paid' ? 'border-slate-800 text-slate-800' :
+                          statusKey === 'partial' ? 'border-slate-400 text-slate-600' :
+                          'border-rose-600 text-rose-600'
+                        }`}>
+                          {statusLabel[statusKey] || record.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 border-r border-slate-100 font-mono">
+                        ₹{parseFloat(record.total_paid || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        <span className="text-slate-400"> / ₹{parseFloat(record.total_fee || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                      </td>
+                      <td className={`px-5 py-3.5 border-r border-slate-100 font-mono font-bold ${balance > 0 ? 'text-rose-600' : 'text-slate-500'}`}>
+                        ₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="px-5 py-3 text-center">
+                        <button
+                          onClick={() => redirectToCollectionPage(record)}
+                          disabled={balance <= 0 && statusKey === 'paid'}
+                          className={`text-xs font-semibold px-4 py-1.5 border transition-all ${
+                            balance <= 0 && statusKey === 'paid'
+                              ? 'border-slate-200 text-slate-300 cursor-not-allowed'
+                              : 'border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white'
+                          }`}
+                        >
+                          {balance <= 0 && statusKey === 'paid' ? "Settled" : "Collect"}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>

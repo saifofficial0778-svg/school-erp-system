@@ -190,36 +190,30 @@ const Teacher = {
         return rows[0];
     },
 
-    // Complete profile - agar aage chalke teacher ke assigned classes,
-    // attendance ya salary logs bhi dikhane ho to yaha joins add kar dena
-    // (student ke getStudentCompleteProfile jaisa hi pattern)
     getTeacherCompleteProfile: async (schoolId, teacherId) => {
         const [profileRows] = await pool.query(
             `SELECT t.*, u.email 
-             FROM teachers t
-             JOIN users u ON t.user_id = u.id
-             WHERE t.id = ? AND t.school_id = ?`,
+         FROM teachers t
+         JOIN users u ON t.user_id = u.id
+         WHERE t.id = ? AND t.school_id = ?`,
             [teacherId, schoolId]
         );
 
         if (profileRows.length === 0) return null;
 
-        // NOTE: Jab class module ban jayega, yaha teacher ke assigned
-        // classes fetch karne wali query add kar dena, jaise:
-        // SELECT c.id, c.class_name, c.section FROM classes c
-        // WHERE c.teacher_id = ? AND c.school_id = ?
+        // ✅ Assigned classes fetch karo — teacher_id se filter
+        const [assignedClasses] = await pool.query(
+            `SELECT id, class_name, section, monthly_fee
+         FROM classes
+         WHERE teacher_id = ? AND school_id = ?`,
+            [teacherId, schoolId]
+        );
 
         return {
-            profile: profileRows[0]
+            profile: profileRows[0],
+            assignedClasses: assignedClasses  // ✅ frontend ko bhejo
         };
-    },
-    getTeacherIdByUserId: async (userId, schoolId) => {
-    const [rows] = await pool.query(
-        `SELECT id FROM teachers WHERE user_id = ? AND school_id = ?`,
-        [userId, schoolId]
-    );
-    return rows[0]?.id || null;
-}
+    }
 };
 
 module.exports = Teacher;

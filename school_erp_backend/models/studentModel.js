@@ -16,10 +16,7 @@ const Student = {
         return rows;
     },
 
-    createStudentTransaction: async (
-        schoolId, email, fullName, admissionNumber,
-        rollNumber, whatsAppNumber, dateOfBirth, gender, guardianName
-    ) => {
+    createStudentTransaction: async (schoolId, email, fullName, admissionNumber, rollNumber, whatsAppNumber, dateOfBirth, gender, guardianName) => {
         const connection = await pool.getConnection();
 
         try {
@@ -220,12 +217,12 @@ const Student = {
         };
     },
     getStudentIdByUserId: async (userId, schoolId) => {
-    const [rows] = await pool.query(
-        `SELECT id FROM students WHERE user_id = ? AND school_id = ?`,
-        [userId, schoolId]
-    );
-    return rows[0]?.id || null;
-}
+        const [rows] = await pool.query(
+            `SELECT id FROM students WHERE user_id = ? AND school_id = ?`,
+            [userId, schoolId]
+        );
+        return rows[0]?.id || null;
+    }
 };
 
 module.exports = Student;

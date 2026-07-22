@@ -14,29 +14,24 @@ const TeacherView = () => {
  useEffect(() => {
     const fetchFullData = async () => {
       try {
-        // ✅ NEW: agar id URL me nahi hai, to apni "me" wali profile fetch karo
         const endpoint = teacherId 
           ? `/teachers/${teacherId}/profile-view` 
           : `/teachers/me/profile-view`;
+          
         const res = await API.get(endpoint);
         if (res.data.success) {
           setData(res.data.data);
+          // ✅ Backend se directly assignedClasses lo — alag call mat karo
+          setAssignedClasses(res.data.data.assignedClasses || []);
         }
-
-        // Assigned classes fetch — agar apni profile hai to teacher_id useEffect me baad me match karenge
-        const classesRes = await API.get('/classes/meta-data');
-        if (classesRes?.data?.success) {
-          const allClasses = classesRes.data.classes || [];
-          // agar teacherId URL me nahi hai (My Profile), to profile load hone ke baad us se match karo
-          setAssignedClasses(allClasses); // temporarily set all; filter neeche fix karenge
-        }
+        // ❌ /classes/meta-data wali call hatao poori
       } catch (err) {
         console.error("Dashboard data load fail:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchFullData(); // ✅ ab teacherId na ho tab bhi chalega (My Profile case)
+    fetchFullData();
 }, [teacherId]);
 
   const getInitials = (name = '') =>

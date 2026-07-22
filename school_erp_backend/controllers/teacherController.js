@@ -108,7 +108,7 @@ exports.deleteTeacher = catchAsync(async (req, res) => {
 
 exports.getTeacherCompleteProfile = catchAsync(async (req, res, next) => {
     const { teacherId } = req.params;
-    if (req.user.role === 'Teacher' && req.user.id !== teacherIdId) {
+    if (req.user.role === 'Teacher' && req.user.id !== teacherId) {
             return res.status(403).json({ 
                 success: false, 
                 message: "Bhai, chalaaki nahi! Aap sirf apni profile dekh sakte ho, kisi aur ki nahi." 
