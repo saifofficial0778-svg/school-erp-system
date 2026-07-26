@@ -2,12 +2,12 @@ const pool = require('../config/db')
 
 const AcademicYear = {
 
-    async createAcademicYear(schoolId, session, startDate, endDate) {
+    async createAcademicYear(schoolId, session, startDate, endDate,status) {
         const [result] = await pool.execute(
             `INSERT INTO academic_years 
-            (school_id,session, start_date,end_date)
-            VALUES (?,?,?,?)`,
-            [schoolId, session, startDate, endDate]
+            (school_id,session, start_date,end_date,status)
+            VALUES (?,?,?,?,?)`,
+            [schoolId, session, startDate, endDate,status]
 
         );
         return result.insertId
@@ -79,7 +79,27 @@ const AcademicYear = {
         } finally {
             connection.release()
         }
+    },
+
+    async getAcademicYearBySession(session, schoolId) {
+        const [result] = await pool.execute(
+            `SELECT id
+            FROM academic_years
+            WHERE session=? AND school_id=?
+            LIMIT 1`, [session, schoolId]
+        )
+        return result[0]
+    },
+
+    async countAcademicYears(schoolId) {
+        const [rows]=await pool.execute(`
+            SELECT COUNT(*) AS total
+            FROM academic_years
+            WHERE school_id = ?;`,[schoolId]
+        )
+        return rows[0].total
     }
+
 
 };
 
