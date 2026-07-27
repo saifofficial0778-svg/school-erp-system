@@ -27,7 +27,7 @@ const AcademicYear = {
             `SELECT id,session,start_date,end_date,status FROM academic_years 
             WHERE id=? and school_id=?`, [id, schoolId]
         )
-        return result
+        return result[0]
     },
 
     async updateAcademicYear(id, schoolId, session, startDate, endDate) {
