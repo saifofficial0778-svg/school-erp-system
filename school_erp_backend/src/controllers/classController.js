@@ -1,4 +1,4 @@
-const ClassModel = require('../models/classModel');
+const ClassModel = require('../models/classModelOld');
 const pool = require('../config/db');
 const catchAsync = require('../utils/catchAsync'); // 🔥 Error wrapper attached
 const AppError = require('../utils/AppError');     // 🔥 Custom operational exception helper

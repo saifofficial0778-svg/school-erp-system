@@ -3,9 +3,9 @@ const cors = require('cors'); // CORS import kar lo taaki React se dikkat na aay
 require('dotenv').config(); // Dotenv ko sabse upar initialize karna achha hota hai
 // Error Handling Imports
 const helmet = require('helmet');
-const globalErrorHandler = require('./middlewares/errorController');
-const AppError = require('./utils/AppError');  
-const { apiLimiter } = require('./middlewares/rateLimiter'); 
+const globalErrorHandler = require('./src/middlewares/errorController');
+const AppError = require('./src/utils/AppError');  
+const { apiLimiter } = require('./src/middlewares/rateLimiter'); 
 const app = express();
 
 // Security headers set karne ke liye top par lagao (routes se pehle)
@@ -19,13 +19,13 @@ app.use(cors({
 app.use(express.json());
 
 // Routes Imports (Apne folder structure ke hisab se path check kar lena)
-const studentRoutes = require('./routes/studentRoutes'); 
-const feeRoutes = require('./routes/feeRoutes');
-const attendanceRoutes=require('./routes/attendanceRoutes')
-const classRoutes=require('./routes/classRoutes')
-const authRoutes=require('./routes/authRoutes') 
-const teacherRoutes=require('./routes/teacherRoutes')
-const academicYearRoutes=require('./routes/academicYearRoutes')
+const studentRoutes = require('./src/routes/studentRoutes'); 
+const feeRoutes = require('./src/routes/feeRoutes');
+const attendanceRoutes=require('./src/routes/attendanceRoutes')
+const classRoutes=require('./src/routes/classRoutes')
+const authRoutes=require('./src/routes/authRoutes') 
+const teacherRoutes=require('./src/routes/teacherRoutes')
+const academicYearRoutes=require('./src/routes/academicYearRoutes')
 
 // Mount Routes
 app.use('/api/v1/students',apiLimiter, studentRoutes);

@@ -4,19 +4,19 @@ const ClassModel = {
     // 1. Create Class
     createClass: async (schoolId, className, section, teacherId, monthlyFee) => {
         const [result] = await pool.query(
-            `INSERT INTO classes (school_id, class_name, section, teacher_id, monthly_fee) 
+            `INSERT INTO classes_old (school_id, class_name, section, teacher_id, monthly_fee) 
              VALUES (?, ?, ?, ?, ?)`,
             [schoolId, className, section, teacherId || null, monthlyFee || 0]
         );
         return result.insertId;
     },
 
-    // 2. Fetch All Classes with Teacher Name
+    // 2. Fetch All classes_old with Teacher Name
     getAllClasses: async (schoolId) => {
         const [rows] = await pool.query(
             `SELECT c.*, t.full_name AS teacher_name,
                     (SELECT COUNT(*) FROM student_class_mapping scm WHERE scm.class_id = c.id AND scm.status = 'active') AS total_students
-             FROM classes c
+             FROM classes_old c
              LEFT JOIN teachers t ON c.teacher_id = t.id
              WHERE c.school_id = ?`,
             [schoolId]
@@ -62,7 +62,7 @@ const ClassModel = {
     );
 
     const [classRow] = await pool.query(
-        `SELECT monthly_fee FROM classes WHERE id = ?`,
+        `SELECT monthly_fee FROM classes_old WHERE id = ?`,
         [classId]
     );
     const monthlyFee = classRow[0]?.monthly_fee || 0;
@@ -102,7 +102,7 @@ if (feeRow.length > 0) {
     // Class ka poora record uthao (teacher_id samet) — ownership check ke liye
 getClassById: async (classId, schoolId) => {
     const [rows] = await pool.query(
-        `SELECT * FROM classes WHERE id = ? AND school_id = ?`,
+        `SELECT * FROM classes_old WHERE id = ? AND school_id = ?`,
         [classId, schoolId]
     );
     return rows[0] || null;
@@ -113,7 +113,7 @@ getStudentActiveClass: async (studentId, schoolId) => {
     const [rows] = await pool.query(
         `SELECT c.id, c.teacher_id 
          FROM student_class_mapping scm
-         JOIN classes c ON scm.class_id = c.id
+         JOIN classes_old c ON scm.class_id = c.id
          WHERE scm.student_id = ? AND scm.school_id = ? AND scm.status = 'active'`,
         [studentId, schoolId]
     );
