@@ -22,21 +22,23 @@ app.use(express.json());
 const studentRoutes = require('./src/routes/studentRoutes'); 
 const feeRoutes = require('./src/routes/feeRoutes');
 const attendanceRoutes=require('./src/routes/attendanceRoutes')
-const classRoutes=require('./src/routes/classRoutes')
+// const classRoutes=require('./src/routes/classRoutes')
 const authRoutes=require('./src/routes/authRoutes') 
 const teacherRoutes=require('./src/routes/teacherRoutes')
-const academicYearRoutes=require('./src/routes/academicYearRoutes')
+const academicYearRoutes=require('./src/modules/academicYear/academicYear.routes')
+const classRoutes=require('./src/modules/class/class.routes')
 
 // Mount Routes
 app.use('/api/v1/students',apiLimiter, studentRoutes);
 app.use('/api/v1/fees',apiLimiter, feeRoutes);
 app.use('/api/v1/attendance',apiLimiter,attendanceRoutes);
-app.use('/api/v1/classes', apiLimiter,classRoutes);
+// app.use('/api/v1/classes', apiLimiter,classRoutes);
 app.use('/api/v1/auth',authRoutes)
 app.use('/api/v1/teachers',apiLimiter,teacherRoutes)
 app.use('/api/v1/academic-years',academicYearRoutes)
+app.use('/api/v1/classes',classRoutes)
 
-// app.use('/api/v1/report', attendanceRoutes);
+
 
 
 

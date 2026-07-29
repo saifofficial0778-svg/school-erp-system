@@ -1,6 +1,6 @@
-const AcademicYear = require('../models/academicYearModel')
-const catchAsync = require('../utils/catchAsync')
-const AppError = require('../utils/AppError')
+const AcademicYear = require('./academicYear.repository')
+const catchAsync = require('../../utils/catchAsync')
+const AppError = require('../../utils/AppError')
 
 exports.createAcademicYear = catchAsync(async (req, res, next) => {
     const { session, startDate, endDate } = req.body;
