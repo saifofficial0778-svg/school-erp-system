@@ -27,6 +27,7 @@ const authRoutes=require('./src/routes/authRoutes')
 const teacherRoutes=require('./src/routes/teacherRoutes')
 const academicYearRoutes=require('./src/modules/academicYear/academicYear.routes')
 const classRoutes=require('./src/modules/class/class.routes')
+const schoolRoutes=require('./src/modules/school/school.route')
 
 // Mount Routes
 app.use('/api/v1/students',apiLimiter, studentRoutes);
@@ -37,6 +38,7 @@ app.use('/api/v1/auth',authRoutes)
 app.use('/api/v1/teachers',apiLimiter,teacherRoutes)
 app.use('/api/v1/academic-years',academicYearRoutes)
 app.use('/api/v1/classes',classRoutes)
+app.use('/api/v1/schools',schoolRoutes)
 
 
 

@@ -1,4 +1,3 @@
-const ClassController = require('./class.controller')
 const classController=require('./class.controller')
 const express=require('express')
 const router=express.Router()
