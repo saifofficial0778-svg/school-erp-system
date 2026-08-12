@@ -31,6 +31,7 @@ const classRoutes=require('./src/modules/class/class.routes')
 const teacherRoutes=require('./src/modules/teacher/teacher.routes')
 const studentRoutes=require('./src/modules/student/student.route')
 const feeTypeRoutes =require('./src/modules/feeManagement/feeType/feeType.route')
+const feeStructureRoutes=require('./src/modules/feeManagement/feeStructure/feeStructure.route')
 
 // Mount Routes
 // app.use('/api/v1/students',apiLimiter, studentRoutes);
@@ -45,6 +46,7 @@ app.use('/api/v1/classes',classRoutes)
 app.use('/api/v1/teachers',teacherRoutes)
 app.use('/api/v1/students',studentRoutes);
 app.use("/api/v1/fee-types", feeTypeRoutes);
+app.use("/api/v1/fee-structures", feeStructureRoutes);
 
 
 // 1. Unhandled Routes Catching (Standard '*' use karo)

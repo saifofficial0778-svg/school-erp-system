@@ -32,6 +32,7 @@ const updateFeeTypeStatusSchema = z.object({
     status: z.enum(["Active", "Inactive"])
 });
 
+
 module.exports = {
     createFeeTypeSchema,
     updateFeeTypeSchema,
