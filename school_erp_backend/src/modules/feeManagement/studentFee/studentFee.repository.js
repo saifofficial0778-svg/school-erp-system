@@ -148,6 +148,26 @@ const StudentFeeModel = {
             `,[studentId,feeStructureId,schoolId]
         )
         return result[0]
+    },
+    async getStudentFeeTotal(studentId, schoolId) {
+        const [result] = await pool.execute(
+            `
+        SELECT
+            SUM(fs.amount) AS total_amount
+        FROM student_fees sf
+        INNER JOIN fee_structures fs
+            ON sf.fee_structure_id = fs.id
+        WHERE
+            sf.student_id = ?
+            AND sf.school_id = ?
+            AND sf.is_deleted = FALSE
+            AND fs.is_deleted = FALSE
+            AND fs.is_active = TRUE
+        `,
+            [studentId, schoolId]
+        );
+
+        return result[0];
     }
 
 };
