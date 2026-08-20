@@ -34,6 +34,7 @@ const feeTypeRoutes =require('./src/modules/feeManagement/feeType/feeType.route'
 const feeStructureRoutes=require('./src/modules/feeManagement/feeStructure/feeStructure.route')
 const studentFeeRoutes = require("./src/modules/feeManagement/studentFee/studentFee.route");
 const studentFeeAccountRoutes = require('./src/modules/feeManagement/studentFeeAccount/studentFeeAccount.route')
+const installmentRoutes = require("./src/modules/feeManagement/installment/installment.route");
 
 // Mount Routes
 // app.use('/api/v1/students',apiLimiter, studentRoutes);
@@ -51,6 +52,7 @@ app.use("/api/v1/fee-types", feeTypeRoutes);
 app.use("/api/v1/fee-structures", feeStructureRoutes);
 app.use("/api/v1/student-fees", studentFeeRoutes);
 app.use("/api/v1/student-fee-accounts", studentFeeAccountRoutes);
+app.use("/api/v1/installments", installmentRoutes);
 
 
 // 1. Unhandled Routes Catching (Standard '*' use karo)

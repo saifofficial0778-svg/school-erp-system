@@ -9,7 +9,19 @@ const createStudentFeeAccountSchema = z.object({
     academicYearId: z
         .number()
         .int()
-        .positive()
+        .positive(),
+
+   installmentPlan: z.enum([
+    "Monthly",
+    "Quarterly",
+    "Half-Yearly",
+    "One-Time"
+]),
+
+startDate: z
+    .string()
+    .date("Invalid date")
+
 });
 
 const updateStudentFeeAccountStatusSchema = z.object({

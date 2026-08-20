@@ -2,10 +2,14 @@ const pool = require("../../../config/db");
 
 const StudentFeeAccountModel = {
 
-    async createStudentFeeAccount(schoolId, feeAccountData) {
-        const { studentId, academicYearId, totalAmount, status } = feeAccountData
+    async createStudentFeeAccount(connection, schoolId, feeAccountData) {
+        const {
+            studentId,
+            academicYearId,
+            totalAmount
+        } = feeAccountData;
 
-        const [result] = await pool.execute(
+        const [result] = await connection.execute(
             `
         INSERT INTO student_fee_accounts (
             school_id,
@@ -14,19 +18,44 @@ const StudentFeeAccountModel = {
             total_amount,
             status
         )
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, 'Pending')
         `,
             [
                 schoolId,
                 studentId,
                 academicYearId,
-                totalAmount,
-                status
+                totalAmount
             ]
         );
 
         return result.insertId;
+    },
 
+    async createInstallments(connection, schoolId, accountId, installments) {
+        for (const installment of installments) {
+
+            await connection.execute(
+                `
+            INSERT INTO installments (
+                school_id,
+                student_fee_account_id,
+                installment_no,
+                amount,
+                due_date,
+                status
+            )
+            VALUES (?, ?, ?, ?, ?, 'Pending')
+            `,
+                [
+                    schoolId,
+                    accountId,
+                    installment.installmentNo,
+                    installment.amount,
+                    installment.dueDate
+                ]
+            );
+
+        }
     },
 
     async getAllStudentFeeAccounts(schoolId) {
@@ -144,7 +173,7 @@ const StudentFeeAccountModel = {
         return result[0];
     },
 
-    
+
 
 };
 
